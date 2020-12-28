@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "fortress",
+  "version": "${version}",
+  "name": "Fortress",
+  "description": "a",
+  "authors": [
+    "Potatoboy9999"
+  ],
+  "contact": {
+    "repo": "a"
+  },
+  "license": "MIT",
+  "icon": "assets/fortress/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "main": [
+      "us.potatoboy.fortress.Fortress"
+    ]
+  },
+  "mixins": [
+    "fortress.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.10.8",
+    "fabric": "*",
+    "minecraft": "1.16.4"
+  }
+}

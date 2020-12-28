@@ -1,0 +1,12 @@
+{
+  "type": "fortress:fortress",
+  "name": "Fortress",
+  "map": {
+    "id": "fortress:test"
+  },
+  "players": {
+    "min": 2,
+    "max": 100
+  },
+  "time_limit_mins": 5
+}
