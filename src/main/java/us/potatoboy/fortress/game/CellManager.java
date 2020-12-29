@@ -67,6 +67,16 @@ public class CellManager {
         return (value + multiplier / 2) / multiplier * multiplier;
     }
 
+    public BlockState getTeamGlass(GameTeam team) {
+        if (team == FortressTeams.RED) {
+            return Blocks.RED_STAINED_GLASS.getDefaultState();
+        } else if (team == FortressTeams.BLUE) {
+            return Blocks.BLUE_STAINED_GLASS.getDefaultState();
+        }
+
+        return Blocks.LIGHT_GRAY_STAINED_GLASS.getDefaultState();
+    }
+
     public BlockState getTeamBlock(GameTeam team, BlockPos pos) {
         Pair<Integer, Integer> location = getCellPos(pos);
 

@@ -30,8 +30,12 @@ public class Cell {
         return owner;
     }
 
-    public void setOwner(GameTeam owner, ServerWorld world) {
+    public void setOwner(GameTeam owner, ServerWorld world, CellManager cellManager) {
         this.owner = owner;
+        bounds.iterator().forEachRemaining(blockPos -> {
+                    world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos));
+                    world.setBlockState(blockPos.add(0, 20, 0), cellManager.getTeamGlass(owner));
+        });
     }
 
     public BlockPos getCenter() {
@@ -54,14 +58,17 @@ public class Cell {
             Iterator<BlockPos> iterator = bounds.iterator();
             for (int i = 0; i < (captureTicks / 20) / captureIncrement; i++) {
                 if (iterator.hasNext()) {
-                    world.setBlockState(iterator.next(), cellManager.getTeamBlock(team, center));
+                    BlockPos blockPos = iterator.next();
+
+                    world.setBlockState(blockPos, cellManager.getTeamBlock(team, center));
+                    world.setBlockState(blockPos.add(0, 20, 0), cellManager.getTeamGlass(team));
                 }
             }
         }
 
         if (captureTicks >= CaptureManager.CAPTURE_TICKS) {
             captureTicks = 0;
-            setOwner(team, world);
+            setOwner(team, world, cellManager);
             captureState = null;
 
             return true;

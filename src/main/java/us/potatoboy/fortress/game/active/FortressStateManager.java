@@ -59,16 +59,17 @@ public class FortressStateManager {
             }
         }
 
-        if (redPercent == 100 || bluePercent == 0) {
+        if (bluePercent == 0) {
             return FortressTeams.RED;
         }
 
-        if (bluePercent == 100 || redPercent == 0) {
+        if (redPercent == 0) {
             return FortressTeams.BLUE;
         }
-        
+
         if (game.gameSpace.getPlayerCount() <= 1) {
             GameTeam team = getRemainingTeam();
+            return team;
         }
 
         return null;

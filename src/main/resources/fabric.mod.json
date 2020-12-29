@@ -11,7 +11,6 @@
     "repo": "a"
   },
   "license": "MIT",
-  "icon": "assets/fortress/icon.png",
   "environment": "server",
   "entrypoints": {
     "main": [

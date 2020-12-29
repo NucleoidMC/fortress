@@ -32,8 +32,6 @@ public class FortressMapGenerator {
             map.redSpawns.addAll(template.getMetadata().getRegions("red_spawn").map(TemplateRegion::getBounds).collect(Collectors.toList()));
             map.blueSpawns.addAll(template.getMetadata().getRegions("blue_spawn").map(TemplateRegion::getBounds).collect(Collectors.toList()));
 
-
-
             return map;
         } catch (IOException e) {
             throw new GameOpenException(new LiteralText("Failed to load map"));

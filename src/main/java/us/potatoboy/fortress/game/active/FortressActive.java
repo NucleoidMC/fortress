@@ -274,6 +274,7 @@ public class FortressActive {
     private void addPlayer(ServerPlayerEntity playerEntity) {
         if (participants.containsKey(PlayerRef.of(playerEntity))) {
             spawnParticipant(playerEntity);
+            sidebar.sidebars.get(getParticipant(playerEntity)).addPlayer(playerEntity);
         } else {
             FortressSpawnLogic.resetPlayer(playerEntity, GameMode.SPECTATOR);
         }

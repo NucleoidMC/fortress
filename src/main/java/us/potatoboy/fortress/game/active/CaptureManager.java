@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class CaptureManager {
-    public static final int CAPTURE_TICKS = 20 * 18;
+    public static final int CAPTURE_TICKS = 20 * 9;
 
     private final GameSpace gameSpace;
     private final FortressActive game;

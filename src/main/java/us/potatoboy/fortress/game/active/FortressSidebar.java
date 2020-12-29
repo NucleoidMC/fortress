@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class FortressSidebar {
     private final FortressActive game;
-    private final HashMap<FortressPlayer, SidebarWidget> sidebars = new HashMap<>();
+    public final HashMap<FortressPlayer, SidebarWidget> sidebars = new HashMap<>();
 
     FortressSidebar(FortressActive game, GlobalWidgets widgets) {
         this.game = game;

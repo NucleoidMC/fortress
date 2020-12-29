@@ -57,17 +57,11 @@ public class FortressWaiting {
             FortressWaiting waiting = new FortressWaiting(game.getSpace(), map, context.getConfig(), teamSelectionLobby, moduleManager);
 
             for (Cell cell : map.cellManager.cells[0]) {
-                cell.setOwner(FortressTeams.BLUE, game.getSpace().getWorld());
-                cell.bounds.iterator().forEachRemaining(blockPos ->
-                        game.getSpace().getWorld().setBlockState(blockPos, map.cellManager.getTeamBlock(FortressTeams.BLUE, blockPos)
-                        ));
+                cell.setOwner(FortressTeams.BLUE, game.getSpace().getWorld(), map.cellManager);
             }
 
             for (Cell cell : map.cellManager.cells[map.cellManager.cells.length - 1]) {
-                cell.setOwner(FortressTeams.RED, game.getSpace().getWorld());
-                cell.bounds.iterator().forEachRemaining(blockPos ->
-                        game.getSpace().getWorld().setBlockState(blockPos, map.cellManager.getTeamBlock(FortressTeams.RED, blockPos)
-                        ));
+                cell.setOwner(FortressTeams.RED, game.getSpace().getWorld(), map.cellManager);
             }
 
             game.on(RequestStartListener.EVENT, waiting::requestStart);
