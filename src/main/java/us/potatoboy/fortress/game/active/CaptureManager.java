@@ -3,6 +3,9 @@ package us.potatoboy.fortress.game.active;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
@@ -118,12 +121,21 @@ public class CaptureManager {
             tickCapturing(cell, interval, attackers);
         } else if (captureState == CaptureState.SECURING) {
             tickSecuring(cell, interval);
+        } else if (captureState == CaptureState.CONTESTED) {
+            tickContested(cell, interval);
         }
+    }
+
+    private void tickContested(Cell cell, int interval) {
+        ServerWorld world = gameSpace.getWorld();
+
+        cell.spawnParticles(ParticleTypes.ANGRY_VILLAGER, world);
     }
 
     private void tickSecuring(Cell cell, int interval) {
         if (cell.decrementCapture(game.gameSpace.getWorld(), interval, game.getMap().cellManager)) {
             //secured
+            cell.spawnTeamParticles(cell.getOwner(), gameSpace.getWorld());
         }
     }
 
@@ -137,9 +149,7 @@ public class CaptureManager {
 
         if (cell.incrementCapture(captureTeam, world, interval * attackers.size(), game.getMap().cellManager)) {
             //captured
-            cell.bounds.iterator().forEachRemaining(blockPos ->
-                    game.gameSpace.getWorld().setBlockState(blockPos, game.getMap().cellManager.getTeamBlock(captureTeam, blockPos)
-                    ));
+            cell.spawnTeamParticles(captureTeam, world);
 
             CellManager cellManager = game.getMap().cellManager;
             int cellCollum = cellManager.getCellPos(cell.getCenter()).getLeft();
@@ -151,6 +161,10 @@ public class CaptureManager {
                     game.gameSpace.getPlayers().sendMessage(new LiteralText("Row Captured"));
                     capturedRows.get(captureTeam).add(cellCollum);
 
+                    for (Cell rowCell : cellManager.cells[cellCollum]) {
+                        rowCell.spawnTeamParticles(captureTeam, world);
+                    }
+
                     ServerPlayerEntity firstAttacker = attackers.iterator().next();
                     ModuleItem moduleItem = FortressModules.getRandomSpecial(firstAttacker.getRandom());
                     ItemStack stack = new ItemStack(moduleItem);
@@ -158,12 +172,11 @@ public class CaptureManager {
                         attacker.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
                         attacker.sendMessage(
                                 new TranslatableText("alert.fortress.give_module",
-                                        stack.toHoverableText(), firstAttacker.getDisplayName())
-                                , false);
+                                        stack.toHoverableText(), firstAttacker.getDisplayName()),
+                                false);
                     }
                     game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);
                 }
-
             }
 
             for (ServerPlayerEntity attacker : attackers) {

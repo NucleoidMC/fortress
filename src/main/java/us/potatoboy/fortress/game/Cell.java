@@ -2,6 +2,8 @@ package us.potatoboy.fortress.game;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.particle.DustParticleEffect;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import us.potatoboy.fortress.game.active.CaptureManager;
@@ -101,5 +103,26 @@ public class Cell {
         }
 
         return false;
+    }
+
+    public void spawnParticles(ParticleEffect effect, ServerWorld world) {
+        bounds.iterator().forEachRemaining(pos -> {
+            world.spawnParticles(
+                    effect,
+                    pos.getX() + 0.5,
+                    pos.getY() + 1,
+                    pos.getZ() + 0.5,
+                    1,
+                    0.0, 0.0, 0.0,
+                    0.0
+            );
+        });
+    }
+
+    public void spawnTeamParticles(GameTeam team, ServerWorld world) {
+        float[] colors = team.getDye().getColorComponents();
+        DustParticleEffect effect = new DustParticleEffect(colors[0], colors[1], colors[2], 2);
+
+        spawnParticles(effect, world);
     }
 }
