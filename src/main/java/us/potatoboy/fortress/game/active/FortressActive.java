@@ -5,16 +5,13 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructurePlacementData;
@@ -22,12 +19,12 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.ServerWorldAccess;
-import us.potatoboy.fortress.custom.ModuleItem;
+import us.potatoboy.fortress.custom.item.FortressModules;
+import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.event.UseItemOnBlockListener;
 import us.potatoboy.fortress.game.*;
 import us.potatoboy.fortress.game.map.FortressMap;
@@ -60,6 +57,8 @@ public class FortressActive {
 
     final FortressSidebar sidebar;
 
+    private final FortressKit fortressKit;
+
     private FortressActive(GameSpace gameSpace, FortressMap map, FortressConfig config, GlobalWidgets widgets, Multimap<GameTeam, ServerPlayerEntity> players, ModuleManager moduleManager) {
         this.gameSpace = gameSpace;
         this.config = config;
@@ -77,8 +76,12 @@ public class FortressActive {
                 this.teams.addPlayer(playerEntity, team);
             }
         }
+        
+        captureManager.setRowCaptured(FortressTeams.BLUE, 0);
+        captureManager.setRowCaptured(FortressTeams.RED, map.cellManager.cells.length - 1);
 
         this.sidebar = new FortressSidebar(this, widgets);
+        this.fortressKit = new FortressKit(gameSpace.getWorld());
     }
 
     public static void open(GameSpace gameSpace, FortressMap map, FortressConfig config, Multimap<GameTeam, ServerPlayerEntity> players, ModuleManager moduleManager) {
@@ -95,6 +98,7 @@ public class FortressActive {
             game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
             game.setRule(GameRule.PLACE_BLOCKS, RuleResult.ALLOW);
             game.setRule(GameRule.BREAK_BLOCKS, RuleResult.ALLOW);
+            game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
             game.on(GameOpenListener.EVENT, active::onOpen);
             game.on(GameCloseListener.EVENT, active::onClose);
@@ -244,7 +248,11 @@ public class FortressActive {
         MutableText deathMessage = getDeathMessage(playerEntity, source);
         gameSpace.getPlayers().sendMessage(deathMessage.formatted(Formatting.GRAY));
         if (source.getAttacker() != null && source.getAttacker() instanceof ServerPlayerEntity) {
-            getParticipant((ServerPlayerEntity) source.getAttacker()).kills += 1;
+            ServerPlayerEntity attacker = (ServerPlayerEntity) source.getAttacker();
+            FortressPlayer participant = getParticipant(attacker);
+
+            participant.giveModule(attacker, participant.team, FortressModules.getRandomModule(attacker.getRandom()), 1);
+            participant.kills += 1;
         }
 
         spawnDeadParticipant(playerEntity);
@@ -273,8 +281,11 @@ public class FortressActive {
 
     private void addPlayer(ServerPlayerEntity playerEntity) {
         if (participants.containsKey(PlayerRef.of(playerEntity))) {
+            playerEntity.inventory.clear();
+
             spawnParticipant(playerEntity);
             sidebar.sidebars.get(getParticipant(playerEntity)).addPlayer(playerEntity);
+            fortressKit.giveItems(playerEntity, getParticipant(playerEntity).team);
         } else {
             FortressSpawnLogic.resetPlayer(playerEntity, GameMode.SPECTATOR);
         }
@@ -294,6 +305,8 @@ public class FortressActive {
             entry.getKey().ifOnline(world, this::spawnParticipant);
         }
 
+        fortressKit.giveStarterKit(participants);
+
         stateManager.onOpen(world.getTime(), config);
     }
 
@@ -306,7 +319,6 @@ public class FortressActive {
     }
 
     private void spawnDeadParticipant(ServerPlayerEntity player) {
-        player.inventory.clear();
         player.setGameMode(GameMode.SPECTATOR);
 
         FortressPlayer fortressPlayer = getParticipant(player);
@@ -316,14 +328,12 @@ public class FortressActive {
     }
 
     private void spawnParticipant(ServerPlayerEntity player) {
-        player.inventory.clear();
         FortressPlayer participant = getParticipant(player);
         assert participant != null;
         participant.timeOfSpawn = gameSpace.getWorld().getTime();
 
         FortressSpawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        participant.giveKit(player, participant.team);
-        FortressSpawnLogic.spawnPlayer(player, map.getSpawn(participant.team, player.getRandom()), gameSpace.getWorld());
+        FortressSpawnLogic.spawnPlayer(player, map.getSpawn(participant.team, player.getRandom()), gameSpace.getWorld(), participant.team == FortressTeams.RED ? 180.0f : 0.0f);
     }
 
     public FortressMap getMap() {

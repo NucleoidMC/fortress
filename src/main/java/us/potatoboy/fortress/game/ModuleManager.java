@@ -2,8 +2,8 @@ package us.potatoboy.fortress.game;
 
 import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructureManager;
-import us.potatoboy.fortress.custom.FortressModules;
-import us.potatoboy.fortress.custom.ModuleItem;
+import us.potatoboy.fortress.custom.item.FortressModules;
+import us.potatoboy.fortress.custom.item.ModuleItem;
 
 import java.util.HashMap;
 
@@ -12,6 +12,10 @@ public class ModuleManager {
 
     public ModuleManager (StructureManager structureManager) {
         for (ModuleItem moduleItem : FortressModules.MODULES) {
+            structures.put(moduleItem, structureManager.getStructure(moduleItem.structure));
+        }
+
+        for (ModuleItem moduleItem : FortressModules.SPECIAL) {
             structures.put(moduleItem, structureManager.getStructure(moduleItem.structure));
         }
     }

@@ -101,4 +101,14 @@ public class CellManager {
 
         return ((BlockItem) itemStack.getItem()).getBlock().getDefaultState();
     }
+
+    public boolean checkRow(int collum, GameTeam team) {
+        for (Cell cell : cells[collum]) {
+            if (cell.getOwner() != team) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

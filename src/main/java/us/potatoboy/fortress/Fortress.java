@@ -2,9 +2,9 @@ package us.potatoboy.fortress;
 
 import com.google.common.reflect.Reflection;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.util.Identifier;
-import us.potatoboy.fortress.custom.FortressModules;
+import us.potatoboy.fortress.custom.block.FortressBlocks;
+import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.game.FortressConfig;
 import us.potatoboy.fortress.game.FortressWaiting;
 import xyz.nucleoid.plasmid.game.GameType;
@@ -25,6 +25,7 @@ public class Fortress implements ModInitializer {
         );
 
         Reflection.initialize(FortressModules.class);
+        Reflection.initialize(FortressBlocks.class);
     }
 
     public static Identifier identifier(String value) {

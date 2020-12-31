@@ -91,6 +91,6 @@ public class FortressWaiting {
 
     private void spawnPlayer(ServerPlayerEntity player) {
         FortressSpawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        FortressSpawnLogic.spawnPlayer(player, map.waitingSpawn, gameSpace.getWorld());
+        FortressSpawnLogic.spawnPlayer(player, map.waitingSpawn, gameSpace.getWorld(), 0.0f);
     }
 }

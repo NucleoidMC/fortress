@@ -31,8 +31,8 @@ public class FortressSpawnLogic {
         return new Vec3d(x, y, z);
     }
 
-    public static void spawnPlayer(ServerPlayerEntity player, BlockBounds bounds, ServerWorld world) {
+    public static void spawnPlayer(ServerPlayerEntity player, BlockBounds bounds, ServerWorld world, float yaw) {
         Vec3d pos = choosePos(player.getRandom(), bounds, 0.5F);
-        player.teleport(world, pos.x, pos.y, pos.z, 0.0F, 0.0F);
+        player.teleport(world, pos.x, pos.y, pos.z, yaw, 0.0F);
     }
 }

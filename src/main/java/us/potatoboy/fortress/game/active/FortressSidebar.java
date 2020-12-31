@@ -9,6 +9,7 @@ import xyz.nucleoid.plasmid.util.PlayerRef;
 import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 import xyz.nucleoid.plasmid.widget.SidebarWidget;
 
+import java.text.Format;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class FortressSidebar {
                 content.writeLine(Formatting.BLUE + "Blue: " + Formatting.GREEN + percents.getRight() + "%");
                 content.writeLine("");
                 content.writeLine("Kills: " + Formatting.GREEN + participant.kills);
+                content.writeLine("Captures: " + Formatting.GREEN + participant.captures);
             });
         }
     }

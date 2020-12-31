@@ -2,15 +2,23 @@ package us.potatoboy.fortress.game.active;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Pair;
+import us.potatoboy.fortress.custom.item.FortressModules;
+import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.CaptureState;
 import us.potatoboy.fortress.game.Cell;
+import us.potatoboy.fortress.game.CellManager;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
+import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -19,6 +27,8 @@ public class CaptureManager {
 
     private final GameSpace gameSpace;
     private final FortressActive game;
+
+    private HashMap<GameTeam, HashSet<Integer>> capturedRows = new HashMap<>();
 
     CaptureManager(FortressActive game) {
         this.gameSpace = game.gameSpace;
@@ -130,8 +140,42 @@ public class CaptureManager {
             cell.bounds.iterator().forEachRemaining(blockPos ->
                     game.gameSpace.getWorld().setBlockState(blockPos, game.getMap().cellManager.getTeamBlock(captureTeam, blockPos)
                     ));
+
+            CellManager cellManager = game.getMap().cellManager;
+            int cellCollum = cellManager.getCellPos(cell.getCenter()).getLeft();
+            if (cellManager.checkRow(cellCollum, captureTeam)) {
+                capturedRows.putIfAbsent(captureTeam, new HashSet<>());
+
+                if (!capturedRows.get(captureTeam).contains(cellCollum)) {
+                    //Captured row for the first time
+                    game.gameSpace.getPlayers().sendMessage(new LiteralText("Row Captured"));
+                    capturedRows.get(captureTeam).add(cellCollum);
+
+                    ServerPlayerEntity firstAttacker = attackers.iterator().next();
+                    ModuleItem moduleItem = FortressModules.getRandomSpecial(firstAttacker.getRandom());
+                    ItemStack stack = new ItemStack(moduleItem);
+                    for (ServerPlayerEntity attacker : attackers) {
+                        attacker.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
+                        attacker.sendMessage(
+                                new TranslatableText("alert.fortress.give_module",
+                                        stack.toHoverableText(), firstAttacker.getDisplayName())
+                                , false);
+                    }
+                    game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);
+                }
+
+            }
+
+            for (ServerPlayerEntity attacker : attackers) {
+                game.getParticipant(attacker).captures++;
+            }
         } else {
             //capturing
         }
+    }
+
+    public void setRowCaptured(GameTeam team, int collum) {
+        capturedRows.putIfAbsent(team, new HashSet<>());
+        capturedRows.get(team).add(collum);
     }
 }

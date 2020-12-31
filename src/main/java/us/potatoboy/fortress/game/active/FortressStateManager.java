@@ -67,12 +67,25 @@ public class FortressStateManager {
             return FortressTeams.BLUE;
         }
 
-        if (game.gameSpace.getPlayerCount() <= 1) {
+        if (getParticipantCount() <= 1) {
             GameTeam team = getRemainingTeam();
             return team;
         }
 
         return null;
+    }
+
+    private int getParticipantCount() {
+        int count = 0;
+
+        for (ServerPlayerEntity player : game.gameSpace.getPlayers()) {
+            FortressPlayer participant = game.getParticipant(player);
+            if (participant != null) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private GameTeam getRemainingTeam() {
