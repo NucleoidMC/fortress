@@ -8,6 +8,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
@@ -84,6 +85,7 @@ public class FortressWaiting {
 
     private void addPlayer(ServerPlayerEntity playerEntity) {
         spawnPlayer(playerEntity);
+        giveBook(playerEntity);
     }
 
     private ActionResult playerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
@@ -99,5 +101,21 @@ public class FortressWaiting {
 
     private void giveBook(ServerPlayerEntity player) {
         ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
+
+        ListTag pages = new ListTag();
+        pages.add(StringTag.of("{\"text\":\"       §l§nFORTRESS§r\\n" +
+                "\\n§oHow To Play:§r\\n" +
+                "\\n§a§l Building§r\\n" +
+                "  Place §omodules§r on your teams captured cells\\n" +
+                " §c§lCapturing§r\\n  Capture adjected or enemy cells by standing on them\\n" +
+                " §6§lWinning§r\\n" +
+                "  Control more cells\"}"
+        ));
+
+        book.getOrCreateTag().put("pages", pages);
+        book.getOrCreateTag().putString("title", "How To Play");
+        book.getOrCreateTag().putString("author", "Potatoboy9999");
+
+        player.inventory.insertStack(2, book);
     }
 }
