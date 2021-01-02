@@ -103,18 +103,30 @@ public class FortressWaiting {
         ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
 
         ListTag pages = new ListTag();
-        pages.add(StringTag.of("{\"text\":\"       §l§nFORTRESS§r\\n" +
-                "\\n§oHow To Play:§r\\n" +
-                "\\n§a§l Building§r\\n" +
-                "  Place §omodules§r on your teams captured cells\\n" +
-                " §c§lCapturing§r\\n  Capture adjected or enemy cells by standing on them\\n" +
-                " §6§lWinning§r\\n" +
-                "  Control more cells\"}"
+        pages.add(StringTag.of(
+                "{\"text\":\"       " +
+                        "§l§nFORTRESS§r\\n\\n\\n" +
+                        "§oHow To Play:§r\\n\\n" +
+                        "§a§l Building§r\\n" +
+                        "  Place §omodules§r on your teams captured cells\\n" +
+                        " §c§lCapturing§r\\n" +
+                        "  Capture adjected or enemy cells by standing on them\\n" +
+                        "\"}"
+        ));
+        pages.add(StringTag.of(
+                "{\"text\":\"" +
+                        "§3§l Earning§r\\n" +
+                        "  Earn modules by getting kills\\n\\n" +
+                        " Earn §ospecial§r modules by capturing an entire row\\n\\n" +
+                        " §6§lWinning§r\\n" +
+                        "  Control the most cells by the end of the game" +
+                        "\"}"
         ));
 
         book.getOrCreateTag().put("pages", pages);
         book.getOrCreateTag().putString("title", "How To Play");
         book.getOrCreateTag().putString("author", "Potatoboy9999");
+        book.getOrCreateTag().putInt("HideFlags", 63);
 
         player.inventory.insertStack(2, book);
     }

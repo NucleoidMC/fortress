@@ -32,9 +32,10 @@ public class FortressKit {
         starterItems.put(Items.WOODEN_AXE, 1);
         starterItems.put(Items.SHIELD, 1);
 
-        starterModules.put(FortressModules.CUBE, 3);
-        starterModules.put(FortressModules.WALL, 4);
+        starterModules.put(FortressModules.CUBE, 2);
+        starterModules.put(FortressModules.WALL, 3);
         starterModules.put(FortressModules.STAIRS, 3);
+        starterModules.put(FortressModules.BARRIER, 2);
     }
 
     public void giveStarterKit(Object2ObjectMap<PlayerRef, FortressPlayer> participants) {

@@ -28,7 +28,7 @@ public class FortressSpawnLogic {
         double z = MathHelper.nextDouble(random, min.getZ(), max.getZ());
         double y = min.getY() + aboveGround;
 
-        return new Vec3d(x, y, z);
+        return new Vec3d(x + 0.5, y, z + 0.5);
     }
 
     public static void spawnPlayer(ServerPlayerEntity player, BlockBounds bounds, ServerWorld world, float yaw) {

@@ -77,7 +77,7 @@ public class FortressActive {
 
         for (GameTeam team : players.keySet()) {
             for (ServerPlayerEntity playerEntity : players.get(team)) {
-                this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team, playerEntity.getDisplayName()));
+                this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
                 this.teams.addPlayer(playerEntity, team);
             }
         }
@@ -360,6 +360,7 @@ public class FortressActive {
         ServerWorld world = gameSpace.getWorld();
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
             entry.getKey().ifOnline(world, this::spawnParticipant);
+            entry.getValue().displayName = entry.getKey().getEntity(world).getDisplayName();
         }
 
         fortressKit.giveStarterKit(participants);

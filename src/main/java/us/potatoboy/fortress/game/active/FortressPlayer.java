@@ -12,7 +12,7 @@ import xyz.nucleoid.plasmid.game.player.GameTeam;
 
 public class FortressPlayer {
     public GameTeam team;
-    public final Text displayName;
+    public Text displayName;
 
     public long timeOfDeath;
     public long timeOfSpawn;
@@ -20,9 +20,8 @@ public class FortressPlayer {
     public int kills;
     public int captures;
 
-    public FortressPlayer(GameTeam team, Text displayName) {
+    public FortressPlayer(GameTeam team) {
         this.team = team;
-        this.displayName = displayName;
     }
 
     public void giveModule(ServerPlayerEntity player, GameTeam team, ModuleItem item, int amount) {

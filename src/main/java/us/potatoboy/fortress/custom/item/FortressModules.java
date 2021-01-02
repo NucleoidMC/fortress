@@ -17,6 +17,7 @@ public class FortressModules {
     public static final ModuleItem WALL = register("module_wall", new ModuleItem(Items.OAK_FENCE, Fortress.identifier("wall")));
     public static final ModuleItem INTERSECTION = register("module_intersection", new ModuleItem(Items.STRIPPED_OAK_WOOD, Fortress.identifier("intersection")));
     public static final ModuleItem DOOR = register("module_door", new ModuleItem(Items.OAK_DOOR, Fortress.identifier("door")));
+    public static final ModuleItem BARRIER = register("module_barrier", new ModuleItem(Items.OAK_SLAB, Fortress.identifier("barrier")));
 
     public static final ModuleItem LAUNCH_PAD = registerSpecial("module_launch_pad", new ModuleItem(Items.SLIME_BLOCK, Fortress.identifier("launcher")));
 
