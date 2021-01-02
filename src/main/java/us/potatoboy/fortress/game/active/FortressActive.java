@@ -81,7 +81,7 @@ public class FortressActive {
                 this.teams.addPlayer(playerEntity, team);
             }
         }
-        
+
         captureManager.setRowCaptured(FortressTeams.BLUE, 0);
         captureManager.setRowCaptured(FortressTeams.RED, map.cellManager.cells.length - 1);
 
@@ -115,7 +115,7 @@ public class FortressActive {
             game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
             game.on(PlayerAddListener.EVENT, active::addPlayer);
             game.on(PlayerRemoveListener.EVENT, active::removePlayer);
-            
+
             game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
         });
     }
@@ -249,22 +249,16 @@ public class FortressActive {
 
         for (PlayerRef player : participants.keySet()) {
             if (mostKills == null) {
-                if (player.isOnline(gameSpace.getWorld())) {
-                    mostKills = player;
-                    mostCaptures = player;
-                }
+                mostKills = player;
+                mostCaptures = player;
             }
 
             if (participants.get(player).kills > participants.get(mostKills).kills) {
-                if (player.isOnline(gameSpace.getWorld())) {
-                    mostKills = player;
-                }
+                mostKills = player;
             }
 
             if (participants.get(player).captures > participants.get(mostCaptures).captures) {
-                if (player.isOnline(gameSpace.getWorld())) {
-                    mostCaptures = player;
-                }
+                mostCaptures = player;
             }
         }
 
@@ -296,7 +290,7 @@ public class FortressActive {
         MutableText deathMessage = getDeathMessage(playerEntity, source);
         gameSpace.getPlayers().sendMessage(deathMessage.formatted(Formatting.GRAY));
 
-        for(int i = 0; i < 75; i++) {
+        for (int i = 0; i < 75; i++) {
             gameSpace.getWorld().spawnParticles(
                     ParticleTypes.FIREWORK,
                     playerEntity.getPos().getX(),
