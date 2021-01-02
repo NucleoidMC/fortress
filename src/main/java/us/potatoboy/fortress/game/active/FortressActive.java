@@ -77,7 +77,7 @@ public class FortressActive {
 
         for (GameTeam team : players.keySet()) {
             for (ServerPlayerEntity playerEntity : players.get(team)) {
-                this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
+                this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team, playerEntity.getDisplayName()));
                 this.teams.addPlayer(playerEntity, team);
             }
         }
@@ -249,16 +249,22 @@ public class FortressActive {
 
         for (PlayerRef player : participants.keySet()) {
             if (mostKills == null) {
-                mostKills = player;
-                mostCaptures = player;
+                if (player.isOnline(gameSpace.getWorld())) {
+                    mostKills = player;
+                    mostCaptures = player;
+                }
             }
 
             if (participants.get(player).kills > participants.get(mostKills).kills) {
-                mostKills = player;
+                if (player.isOnline(gameSpace.getWorld())) {
+                    mostKills = player;
+                }
             }
 
             if (participants.get(player).captures > participants.get(mostCaptures).captures) {
-                mostCaptures = player;
+                if (player.isOnline(gameSpace.getWorld())) {
+                    mostCaptures = player;
+                }
             }
         }
 
@@ -268,12 +274,12 @@ public class FortressActive {
                 .formatted(Formatting.BOLD, winTeam.getFormatting());
 
         Text kills = new LiteralText("Most Kills: ")
-                .append(mostKills.getEntity(gameSpace.getWorld()).getDisplayName())
+                .append(participants.get(mostKills).displayName)
                 .append(" - ")
                 .append("" + Formatting.GREEN + participants.get(mostKills).kills);
 
         Text captures = new LiteralText("Most Captures: ")
-                .append(mostCaptures.getEntity(gameSpace.getWorld()).getDisplayName())
+                .append(participants.get(mostCaptures).displayName)
                 .append(" - ")
                 .append("" + Formatting.GREEN + participants.get(mostCaptures).captures);
 

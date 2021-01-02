@@ -5,12 +5,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.FortressTeams;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 
 public class FortressPlayer {
     public GameTeam team;
+    public final Text displayName;
 
     public long timeOfDeath;
     public long timeOfSpawn;
@@ -18,8 +20,9 @@ public class FortressPlayer {
     public int kills;
     public int captures;
 
-    public FortressPlayer(GameTeam team) {
+    public FortressPlayer(GameTeam team, Text displayName) {
         this.team = team;
+        this.displayName = displayName;
     }
 
     public void giveModule(ServerPlayerEntity player, GameTeam team, ModuleItem item, int amount) {
