@@ -5,6 +5,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
@@ -92,5 +95,9 @@ public class FortressWaiting {
     private void spawnPlayer(ServerPlayerEntity player) {
         FortressSpawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         FortressSpawnLogic.spawnPlayer(player, map.waitingSpawn, gameSpace.getWorld(), 0.0f);
+    }
+
+    private void giveBook(ServerPlayerEntity player) {
+        ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
     }
 }

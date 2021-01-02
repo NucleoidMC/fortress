@@ -25,14 +25,12 @@ public class FortressPlayer {
     public void giveModule(ServerPlayerEntity player, GameTeam team, ModuleItem item, int amount) {
         ItemStack moduleStack = new ItemStack(item, amount);
 
-        CompoundTag tag = new CompoundTag();
-
         ListTag canPlaceOn = new ListTag();
         canPlaceOn.add(StringTag.of(team == FortressTeams.RED ? "minecraft:red_concrete" : "minecraft:blue_concrete"));
         canPlaceOn.add(StringTag.of(team == FortressTeams.RED ? "minecraft:red_terracotta" : "minecraft:blue_terracotta"));
-        tag.put("CanPlaceOn", canPlaceOn);
 
-        moduleStack.setTag(tag);
+        moduleStack.getOrCreateTag().put("CanPlaceOn", canPlaceOn);
+        moduleStack.getOrCreateTag().putInt("HideFlags", 63);
 
         player.inventory.insertStack(moduleStack);
     }

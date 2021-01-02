@@ -244,18 +244,66 @@ public class FortressActive {
             });
         }
 
+        PlayerRef mostKills = null;
+        PlayerRef mostCaptures = null;
+
+        for (PlayerRef player : participants.keySet()) {
+            if (mostKills == null) {
+                mostKills = player;
+                mostCaptures = player;
+            }
+
+            if (participants.get(player).kills > participants.get(mostKills).kills) {
+                mostKills = player;
+            }
+
+            if (participants.get(player).captures > participants.get(mostCaptures).captures) {
+                mostCaptures = player;
+            }
+        }
+
         Text title = new LiteralText("")
                 .append(winTeam.getDisplay())
                 .append(" Wins!")
                 .formatted(Formatting.BOLD, winTeam.getFormatting());
 
+        Text kills = new LiteralText("Most Kills: ")
+                .append(mostKills.getEntity(gameSpace.getWorld()).getDisplayName())
+                .append(" - ")
+                .append("" + Formatting.GREEN + participants.get(mostKills).kills);
+
+        Text captures = new LiteralText("Most Captures: ")
+                .append(mostCaptures.getEntity(gameSpace.getWorld()).getDisplayName())
+                .append(" - ")
+                .append("" + Formatting.GREEN + participants.get(mostCaptures).captures);
+
         PlayerSet players = gameSpace.getPlayers();
         players.sendTitle(title, 1, 200, 3);
+        players.sendMessage(new LiteralText("------------------"));
+        players.sendMessage(title);
+        players.sendMessage(kills);
+        players.sendMessage(captures);
+        players.sendMessage(new LiteralText("------------------"));
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
         MutableText deathMessage = getDeathMessage(playerEntity, source);
         gameSpace.getPlayers().sendMessage(deathMessage.formatted(Formatting.GRAY));
+
+        for(int i = 0; i < 75; i++) {
+            gameSpace.getWorld().spawnParticles(
+                    ParticleTypes.FIREWORK,
+                    playerEntity.getPos().getX(),
+                    playerEntity.getPos().getY() + 1.0f,
+                    playerEntity.getPos().getZ(),
+                    1,
+                    ((playerEntity.getRandom().nextFloat() * 2.0f) - 1.0f) * 0.35f,
+                    ((playerEntity.getRandom().nextFloat() * 2.0f) - 1.0f) * 0.35f,
+                    ((playerEntity.getRandom().nextFloat() * 2.0f) - 1.0f) * 0.35f,
+                    0.1);
+            ;
+        }
+
         if (source.getAttacker() != null && source.getAttacker() instanceof ServerPlayerEntity) {
             ServerPlayerEntity attacker = (ServerPlayerEntity) source.getAttacker();
             FortressPlayer participant = getParticipant(attacker);

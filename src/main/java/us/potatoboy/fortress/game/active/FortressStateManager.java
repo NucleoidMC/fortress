@@ -67,36 +67,38 @@ public class FortressStateManager {
             return FortressTeams.BLUE;
         }
 
-        if (getParticipantCount() <= 1) {
-            GameTeam team = getRemainingTeam();
-            return team;
+        GameTeam remainingTeam = getRemainingTeam();
+        if (remainingTeam != null) {
+            return remainingTeam;
         }
 
         return null;
     }
 
-    private int getParticipantCount() {
-        int count = 0;
-
-        for (ServerPlayerEntity player : game.gameSpace.getPlayers()) {
-            FortressPlayer participant = game.getParticipant(player);
-            if (participant != null) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
     private GameTeam getRemainingTeam() {
+        boolean redRemaining = false;
+        boolean blueRemaining = false;
+
         for (ServerPlayerEntity player : game.gameSpace.getPlayers()) {
             FortressPlayer participant = game.getParticipant(player);
             if (participant != null) {
-                return participant.team;
+                if (participant.team == FortressTeams.RED) {
+                    redRemaining = true;
+                } else if (participant.team == FortressTeams.BLUE) {
+                    blueRemaining = true;
+                }
             }
         }
 
-        return FortressTeams.RED;
+        if (redRemaining && !blueRemaining) {
+            return FortressTeams.RED;
+        }
+
+        if (blueRemaining && !redRemaining) {
+            return FortressTeams.BLUE;
+        }
+
+        return null;
     }
 
     public void triggerFinish(long time) {

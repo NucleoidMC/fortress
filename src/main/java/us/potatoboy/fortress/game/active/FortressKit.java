@@ -69,6 +69,7 @@ public class FortressKit {
             }
 
             itemStack.getOrCreateTag().putBoolean("Unbreakable", true);
+            itemStack.getOrCreateTag().putInt("HideFlags", 63);
 
             playerEntity.inventory.insertStack(itemStack);
         }

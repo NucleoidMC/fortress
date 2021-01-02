@@ -11,6 +11,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Pair;
+import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.CaptureState;
@@ -44,6 +45,7 @@ public class CaptureManager {
         for (Object2ObjectMap.Entry<PlayerRef, FortressPlayer> entry : Object2ObjectMaps.fastIterable(game.participants)) {
             ServerPlayerEntity player = entry.getKey().getEntity(world);
             if (player == null) continue;
+            if (player.interactionManager.getGameMode() != GameMode.ADVENTURE) continue;
 
             FortressPlayer participant = entry.getValue();
 
@@ -158,7 +160,6 @@ public class CaptureManager {
 
                 if (!capturedRows.get(captureTeam).contains(cellCollum)) {
                     //Captured row for the first time
-                    game.gameSpace.getPlayers().sendMessage(new LiteralText("Row Captured"));
                     capturedRows.get(captureTeam).add(cellCollum);
 
                     for (Cell rowCell : cellManager.cells[cellCollum]) {
