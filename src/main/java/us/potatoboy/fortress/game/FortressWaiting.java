@@ -75,6 +75,10 @@ public class FortressWaiting {
     }
 
     private StartResult requestStart() {
+        if (gameSpace.getPlayers().size() < 2) {
+            return StartResult.NOT_ENOUGH_PLAYERS;
+        }
+
         Multimap<GameTeam, ServerPlayerEntity> players = HashMultimap.create();
         teamSelectionLobby.allocate(players::put);
 

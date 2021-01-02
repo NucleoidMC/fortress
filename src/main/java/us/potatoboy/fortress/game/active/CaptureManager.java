@@ -169,9 +169,9 @@ public class CaptureManager {
                     ServerPlayerEntity firstAttacker = attackers.iterator().next();
                     ModuleItem moduleItem = FortressModules.getRandomSpecial(firstAttacker.getRandom());
                     ItemStack stack = new ItemStack(moduleItem);
-                    for (ServerPlayerEntity attacker : attackers) {
-                        attacker.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
-                        attacker.sendMessage(
+                    for (ServerPlayerEntity player : gameSpace.getPlayers()) {
+                        player.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
+                        player.sendMessage(
                                 new TranslatableText("alert.fortress.give_module",
                                         stack.toHoverableText(), firstAttacker.getDisplayName()),
                                 false);
