@@ -1,10 +1,8 @@
 package us.potatoboy.fortress.game.active;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.ShieldItem;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -12,6 +10,7 @@ import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.FortressTeams;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
 import java.util.HashMap;
@@ -31,6 +30,8 @@ public class FortressKit {
         starterItems.put(Items.STONE_SWORD, 1);
         starterItems.put(Items.WOODEN_AXE, 1);
         starterItems.put(Items.SHIELD, 1);
+        starterItems.put(Items.BOW, 1);
+        starterItems.put(Items.ARROW, 1);
 
         starterModules.put(FortressModules.CUBE, 2);
         starterModules.put(FortressModules.WALL, 3);
@@ -59,14 +60,22 @@ public class FortressKit {
         giveModules(blueTeam, FortressTeams.BLUE);
     }
 
+    private void giveArmor(ServerPlayerEntity playerEntity, GameTeam blue) {
+
+    }
+
     public void giveItems(ServerPlayerEntity playerEntity, GameTeam team) {
         for (Map.Entry<Item, Integer> entry : starterItems.entrySet()) {
             ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
 
             if (entry.getKey() instanceof ShieldItem) {
-                CompoundTag tag2 = new CompoundTag();
-                tag2.putInt("Base", team == FortressTeams.RED ? 14 : 11);
-                itemStack.putSubTag("BlockEntityTag", tag2);
+                CompoundTag tag = new CompoundTag();
+                tag.putInt("Base", team == FortressTeams.RED ? 14 : 11);
+                itemStack.putSubTag("BlockEntityTag", tag);
+            }
+
+            if (entry.getKey() instanceof BowItem) {
+                itemStack.addEnchantment(Enchantments.INFINITY, 1);
             }
 
             itemStack.getOrCreateTag().putBoolean("Unbreakable", true);
@@ -74,6 +83,8 @@ public class FortressKit {
 
             playerEntity.inventory.insertStack(itemStack);
         }
+
+        giveArmor(playerEntity, team);
     }
 
     private void giveModules(HashMap<PlayerRef, FortressPlayer> players, GameTeam team) {

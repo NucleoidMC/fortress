@@ -8,6 +8,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.particle.BlockDustParticle;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.player.ItemCooldownManager;
+import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.item.ArrowItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
@@ -109,6 +112,7 @@ public class FortressActive {
             game.on(GameCloseListener.EVENT, active::onClose);
             game.on(PlaceBlockListener.EVENT, active::onPlaceBlock);
             game.on(UseItemOnBlockListener.EVENT, active::onUseItemOnBlock);
+            game.on(PlayerFireArrowListener.EVENT, active::onFireArrow);
 
             game.on(GameTickListener.EVENT, active::tick);
 
@@ -118,6 +122,14 @@ public class FortressActive {
 
             game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
         });
+    }
+
+    private ActionResult onFireArrow(ServerPlayerEntity player, ItemStack itemStack, ArrowItem arrowItem, int i, PersistentProjectileEntity persistentProjectileEntity) {
+        ItemCooldownManager cooldown = player.getItemCooldownManager();
+        if (!cooldown.isCoolingDown(itemStack.getItem())) {
+            cooldown.set(itemStack.getItem(), 100);
+        }
+        return ActionResult.PASS;
     }
 
     private ActionResult onUseItemOnBlock(ServerPlayerEntity player, BlockPos pos, ItemUsageContext context) {
