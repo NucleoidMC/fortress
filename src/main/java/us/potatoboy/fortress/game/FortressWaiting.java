@@ -75,7 +75,7 @@ public class FortressWaiting {
     }
 
     private StartResult requestStart() {
-        if (gameSpace.getPlayers().size() < 2) {
+        if (gameSpace.getPlayers().size() < config.playerConfig.getMinPlayers()) {
             return StartResult.NOT_ENOUGH_PLAYERS;
         }
 

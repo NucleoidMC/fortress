@@ -173,7 +173,7 @@ public class CaptureManager {
                         player.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
                         player.sendMessage(
                                 new TranslatableText("alert.fortress.give_module",
-                                        stack.toHoverableText(), firstAttacker.getDisplayName()),
+                                        firstAttacker.getDisplayName(), stack.toHoverableText()),
                                 false);
                     }
                     game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);

@@ -60,8 +60,21 @@ public class FortressKit {
         giveModules(blueTeam, FortressTeams.BLUE);
     }
 
-    private void giveArmor(ServerPlayerEntity playerEntity, GameTeam blue) {
+    private void giveArmor(ServerPlayerEntity playerEntity, GameTeam team) {
+        ItemStack boots = ItemStackBuilder.of(Items.LEATHER_BOOTS).addEnchantment(Enchantments.FEATHER_FALLING, 3).setUnbreakable().build();
+        boots = team.dye(boots);
+        boots.getOrCreateTag().putInt("HideFlags", 127);
 
+        ItemStack[] armorStacks = new ItemStack[] {
+                boots,
+                new ItemStack(Items.AIR),
+                new ItemStack(Items.AIR),
+                new ItemStack(Items.AIR)
+        };
+
+        for (int i = 0; i < armorStacks.length; i++) {
+            playerEntity.inventory.armor.set(i, armorStacks[i]);
+        }
     }
 
     public void giveItems(ServerPlayerEntity playerEntity, GameTeam team) {

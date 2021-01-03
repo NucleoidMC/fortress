@@ -8,5 +8,5 @@
     "min": 2,
     "max": 100
   },
-  "time_limit_mins": 10
+  "time_limit_mins": 5
 }
