@@ -20,6 +20,7 @@ public class FortressModules {
     public static final ModuleItem BARRIER = register("module_barrier", new ModuleItem(Items.OAK_SLAB, Fortress.identifier("barrier")));
 
     public static final ModuleItem LAUNCH_PAD = registerSpecial("module_launch_pad", new ModuleItem(Items.SLIME_BLOCK, Fortress.identifier("launcher")));
+    public static final HealModuleItem HEAL = registerSpecial("module_heal", new HealModuleItem(Items.PINK_STAINED_GLASS, Fortress.identifier("heal")));
 
     private static <T extends ModuleItem> T register(String identifier, T item) {
         MODULES.add(item);

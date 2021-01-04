@@ -6,5 +6,6 @@
   "item.fortress.module_door": "Door Module",
   "item.fortress.module_barrier": "Barrier Module",
   "item.fortress.module_launch_pad": "Launch Pad Module",
+  "item.fortress.module_heal": "Heal Module",
   "alert.fortress.give_module": "%s has obtained a %s"
 }

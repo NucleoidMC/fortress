@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.particle.BlockDustParticle;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.ItemCooldownManager;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
@@ -136,6 +135,7 @@ public class FortressActive {
         if (context.getStack().getItem() instanceof ModuleItem) {
 
             ItemStack itemStack = context.getStack();
+            ModuleItem moduleItem = (ModuleItem) context.getStack().getItem();
 
             BlockPos blockPos = context.getBlockPos();
             Direction direction = context.getSide();
@@ -143,7 +143,7 @@ public class FortressActive {
             if (context.getWorld().canPlayerModifyAt(player, context.getBlockPos()) && player.canPlaceOn(blockPos2, direction, itemStack)) {
                 Cell cell = map.cellManager.getCell(blockPos);
                 Structure structure = moduleManager.getStructure((ModuleItem) context.getStack().getItem());
-                if (cell == null || cell.isOccupied() || structure == null || cell.getOwner() != getParticipant(player).team || cell.captureState != null) {
+                if (cell == null || !cell.hasModules() || structure == null || cell.getOwner() != getParticipant(player).team || cell.captureState != null) {
                     int slot;
                     if (context.getHand() == Hand.MAIN_HAND) {
                         slot = player.inventory.selectedSlot;
@@ -182,7 +182,7 @@ public class FortressActive {
                 cell.spawnParticles(effect, gameSpace.getWorld());
 
                 context.getStack().decrement(1);
-                cell.setOccupied(true);
+                cell.addModule(moduleItem);
                 return ActionResult.SUCCESS;
             }
 
@@ -214,8 +214,15 @@ public class FortressActive {
         }
 
         if (time % 20 == 0) {
-            captureManager.tick(world, 20);
+            captureManager.tick(world, 30);
             sidebar.update(time);
+
+            Cell[][] cells = map.cellManager.cells;
+            for (int z = 0; z < cells.length; z++) {
+                for (int x = 0; x < cells[z].length; x++) {
+                    cells[z][x].tickModules(participants, world);
+                }
+            }
         }
 
         tickDead(world, time);
@@ -346,6 +353,7 @@ public class FortressActive {
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {
+        sidebar.sidebars.get(getParticipant(playerEntity)).removePlayer(playerEntity);
     }
 
     private void addPlayer(ServerPlayerEntity playerEntity) {

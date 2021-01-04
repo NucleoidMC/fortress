@@ -1,22 +1,28 @@
 package us.potatoboy.fortress.game;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.active.CaptureManager;
+import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.plasmid.util.PlayerRef;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Cell {
     private GameTeam owner;
     private final BlockPos center;
     public final BlockBounds bounds;
-    private boolean occupied;
+    private List<ModuleItem> modules;
 
     public CaptureState captureState;
     public int captureTicks;
@@ -24,7 +30,7 @@ public class Cell {
     public Cell(BlockPos center) {
         this.center = center;
         owner = null;
-        occupied = false;
+        modules = new ArrayList();
         bounds = new BlockBounds(center.add(-1, 0, -1), center.add(1, 0 , 1));
     }
 
@@ -44,12 +50,16 @@ public class Cell {
         return center;
     }
 
-    public boolean isOccupied() {
-        return occupied;
+    public boolean hasModules() {
+        return modules.isEmpty();
     }
 
-    public void setOccupied(boolean occupied) {
-        this.occupied = occupied;
+    public void addModule(ModuleItem module) {
+        modules.add(module);
+    }
+
+    public void tickModules(Object2ObjectMap<PlayerRef, FortressPlayer> participants, ServerWorld world) {
+        modules.forEach(moduleItem -> moduleItem.tick(center, participants, owner, world));
     }
 
     public boolean incrementCapture(GameTeam team, ServerWorld world, int amount, CellManager cellManager) {
