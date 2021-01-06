@@ -9,16 +9,19 @@ public class FortressConfig {
     public static final Codec<FortressConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FortressMapConfig.CODEC.fieldOf("map").forGetter(config -> config.mapConfig),
             PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
-            Codec.INT.fieldOf("time_limit_mins").forGetter(config -> config.timeLimitMins)
+            Codec.INT.fieldOf("time_limit_mins").forGetter(config -> config.timeLimitMins),
+            Codec.BOOL.fieldOf("capture_enemy").forGetter(config -> config.captureEnemy)
     ).apply(instance, FortressConfig::new));
 
     public final FortressMapConfig mapConfig;
     public final PlayerConfig playerConfig;
     public final int timeLimitMins;
+    public final boolean captureEnemy;
 
-    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins) {
+    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy) {
         this.mapConfig = mapConfig;
         this.playerConfig = players;
         this.timeLimitMins = timeLimitMins;
+        this.captureEnemy = captureEnemy;
     }
 }

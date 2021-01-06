@@ -49,7 +49,7 @@ import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 import java.util.Map;
 
 public class FortressActive {
-    private final FortressConfig config;
+    public final FortressConfig config;
 
     public final GameSpace gameSpace;
     private final FortressMap map;
@@ -112,6 +112,7 @@ public class FortressActive {
             game.on(PlaceBlockListener.EVENT, active::onPlaceBlock);
             game.on(UseItemOnBlockListener.EVENT, active::onUseItemOnBlock);
             game.on(PlayerFireArrowListener.EVENT, active::onFireArrow);
+            game.on(PlayerPunchBlockListener.EVENT, active::onAttackBlock);
 
             game.on(GameTickListener.EVENT, active::tick);
 
@@ -121,6 +122,10 @@ public class FortressActive {
 
             game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
         });
+    }
+
+    private ActionResult onAttackBlock(ServerPlayerEntity playerEntity, Direction direction, BlockPos blockPos) {
+        return ActionResult.FAIL;
     }
 
     private ActionResult onFireArrow(ServerPlayerEntity player, ItemStack itemStack, ArrowItem arrowItem, int i, PersistentProjectileEntity persistentProjectileEntity) {
@@ -353,7 +358,9 @@ public class FortressActive {
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {
-        sidebar.sidebars.get(getParticipant(playerEntity)).removePlayer(playerEntity);
+        if (participants.containsKey(PlayerRef.of(playerEntity))) {
+            sidebar.sidebars.get(getParticipant(playerEntity)).removePlayer(playerEntity);
+        }
     }
 
     private void addPlayer(ServerPlayerEntity playerEntity) {

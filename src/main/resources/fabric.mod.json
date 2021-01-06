@@ -11,7 +11,7 @@
     "repo": "a"
   },
   "license": "MIT",
-  "environment": "server",
+  "environment": "*",
   "entrypoints": {
     "main": [
       "us.potatoboy.fortress.Fortress"

@@ -58,6 +58,10 @@ public class FortressKit {
 
         giveModules(redTeam, FortressTeams.RED);
         giveModules(blueTeam, FortressTeams.BLUE);
+
+        for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
+            entry.getKey().ifOnline(world, playerEntity -> playerEntity.playerScreenHandler.sendContentUpdates());
+        }
     }
 
     private void giveArmor(ServerPlayerEntity playerEntity, GameTeam team) {

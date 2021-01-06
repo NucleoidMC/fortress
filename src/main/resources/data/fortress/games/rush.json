@@ -9,5 +9,5 @@
     "max": 100
   },
   "time_limit_mins": 5,
-  "capture_enemy": false
+  "capture_enemy": true
 }

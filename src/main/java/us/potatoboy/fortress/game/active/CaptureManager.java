@@ -53,26 +53,32 @@ public class CaptureManager {
 
             if (currentCell == null) continue;
 
-            if (currentCell.getOwner() == null) {
-                boolean ownsNeighbor = false;
+            boolean ownsNeighbor = false;
 
-                Pair<Integer, Integer> location = game.getMap().cellManager.getCellPos(player.getBlockPos());
-                Cell[][] mapCells = game.getMap().cellManager.cells;
-                if (location == null) continue;
+            Pair<Integer, Integer> location = game.getMap().cellManager.getCellPos(player.getBlockPos());
+            Cell[][] mapCells = game.getMap().cellManager.cells;
+            if (location == null) continue;
 
-                for (int x = location.getLeft() - 1; x <= (location.getLeft()) + 1; x += 1 ) {
-                    for (int z = location.getRight() - 1; z <= (location.getRight() + 1); z += 1) {
-                        if (x < 0 || z < 0 || x >= mapCells.length || z >= mapCells[x].length) {
-                            continue;
-                        }
+            for (int x = location.getLeft() - 1; x <= (location.getLeft()) + 1; x += 1 ) {
+                for (int z = location.getRight() - 1; z <= (location.getRight() + 1); z += 1) {
+                    if (x < 0 || z < 0 || x >= mapCells.length || z >= mapCells[x].length) {
+                        continue;
+                    }
 
-                        Cell neighborCell = game.getMap().cellManager.cells[x][z];
-                        if (neighborCell.getOwner() == participant.team) {
-                            ownsNeighbor = true;
-                        }
+                    Cell neighborCell = game.getMap().cellManager.cells[x][z];
+                    if (neighborCell.getOwner() == participant.team) {
+                        ownsNeighbor = true;
                     }
                 }
+            }
 
+            if (game.config.captureEnemy) {
+                if (currentCell.getOwner() == null) {
+                    if (!ownsNeighbor) {
+                        continue;
+                    }
+                }
+            } else {
                 if (!ownsNeighbor) continue;
             }
 
