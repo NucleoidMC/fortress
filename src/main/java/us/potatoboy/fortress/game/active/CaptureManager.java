@@ -3,8 +3,6 @@ package us.potatoboy.fortress.game.active;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -17,12 +15,11 @@ import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.CaptureState;
 import us.potatoboy.fortress.game.Cell;
 import us.potatoboy.fortress.game.CellManager;
+import us.potatoboy.fortress.game.FortressTeams;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
-import java.awt.*;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -158,6 +155,7 @@ public class CaptureManager {
         if (cell.incrementCapture(captureTeam, world, interval * attackers.size(), game.getMap().cellManager)) {
             //captured
             cell.spawnTeamParticles(captureTeam, world);
+            cell.setModuleColor(captureTeam == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
 
             CellManager cellManager = game.getMap().cellManager;
             int cellCollum = cellManager.getCellPos(cell.getCenter()).getLeft();

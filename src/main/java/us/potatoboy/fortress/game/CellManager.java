@@ -1,11 +1,9 @@
 package us.potatoboy.fortress.game;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
@@ -62,7 +60,6 @@ public class CellManager {
         return new Pair<>(cellZ, cellX);
     }
 
-
     public int round(int value, int multiplier) {
         return (value + multiplier / 2) / multiplier * multiplier;
     }
@@ -82,22 +79,9 @@ public class CellManager {
 
         boolean primary = (location.getLeft() + location.getRight()) % 2 != 0;
 
-        Block block;
-        if (team == FortressTeams.RED) {
-            if (primary) {
-                block = Blocks.RED_CONCRETE;
-            } else {
-                block = Blocks.RED_TERRACOTTA;
-            }
-        } else {
-            if (primary) {
-                block = Blocks.BLUE_CONCRETE;
-            } else {
-                block = Blocks.BLUE_TERRACOTTA;
-            }
-        }
+        TeamPallet pallet = team == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET;
 
-        ItemStack itemStack = new ItemStack(block);
+        ItemStack itemStack = new ItemStack(primary ? pallet.primary : pallet.secondary);
 
         return ((BlockItem) itemStack.getItem()).getBlock().getDefaultState();
     }
@@ -110,5 +94,9 @@ public class CellManager {
         }
 
         return true;
+    }
+
+    public int getFloorHeight() {
+        return bounds.getMax().getY();
     }
 }

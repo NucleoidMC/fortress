@@ -100,7 +100,7 @@ public class FortressActive {
             game.setRule(GameRule.CRAFTING, RuleResult.DENY);
             game.setRule(GameRule.PORTALS, RuleResult.DENY);
             game.setRule(GameRule.PVP, RuleResult.ALLOW);
-            game.setRule(GameRule.HUNGER, RuleResult.ALLOW);
+            game.setRule(GameRule.HUNGER, RuleResult.DENY);
             game.setRule(GameRule.INTERACTION, RuleResult.ALLOW);
             game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
             game.setRule(GameRule.PLACE_BLOCKS, RuleResult.ALLOW);
@@ -131,7 +131,7 @@ public class FortressActive {
     private ActionResult onFireArrow(ServerPlayerEntity player, ItemStack itemStack, ArrowItem arrowItem, int i, PersistentProjectileEntity persistentProjectileEntity) {
         ItemCooldownManager cooldown = player.getItemCooldownManager();
         if (!cooldown.isCoolingDown(itemStack.getItem())) {
-            cooldown.set(itemStack.getItem(), 100);
+            cooldown.set(itemStack.getItem(), 60);
         }
         return ActionResult.PASS;
     }
@@ -148,7 +148,10 @@ public class FortressActive {
             if (context.getWorld().canPlayerModifyAt(player, context.getBlockPos()) && player.canPlaceOn(blockPos2, direction, itemStack)) {
                 Cell cell = map.cellManager.getCell(blockPos);
                 Structure structure = moduleManager.getStructure((ModuleItem) context.getStack().getItem());
-                if (cell == null || !cell.hasModules() || structure == null || cell.getOwner() != getParticipant(player).team || cell.captureState != null) {
+
+                int placeIndex = (blockPos.getY() - map.cellManager.getFloorHeight()) / 3;
+
+                if (cell == null || cell.hasModuleAt(placeIndex) || structure == null || cell.getOwner() != getParticipant(player).team || cell.captureState != null) {
                     int slot;
                     if (context.getHand() == Hand.MAIN_HAND) {
                         slot = player.inventory.selectedSlot;
@@ -161,7 +164,7 @@ public class FortressActive {
                 }
 
                 StructurePlacementData structurePlacementData = new StructurePlacementData();
-                BlockPos structurePos = new BlockPos(cell.getCenter()).add(0, 1, 0);
+                BlockPos structurePos = new BlockPos(cell.getCenter()).add(0, 1, 0).add(0, placeIndex * 3, 0);
                 Direction playerDirection = context.getPlayerFacing();
                 switch (playerDirection) {
                     case NORTH:
@@ -188,6 +191,8 @@ public class FortressActive {
 
                 context.getStack().decrement(1);
                 cell.addModule(moduleItem);
+                cell.setModuleColor(cell.getOwner() == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, (ServerWorld) context.getWorld());
+
                 return ActionResult.SUCCESS;
             }
 

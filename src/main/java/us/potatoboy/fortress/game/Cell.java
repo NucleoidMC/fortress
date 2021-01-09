@@ -1,11 +1,11 @@
 package us.potatoboy.fortress.game;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.*;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.active.CaptureManager;
@@ -54,6 +54,10 @@ public class Cell {
         return modules.isEmpty();
     }
 
+    public boolean hasModuleAt(int index) {
+        return modules.size() >= index + 1;
+    }
+
     public void addModule(ModuleItem module) {
         modules.add(module);
     }
@@ -87,6 +91,34 @@ public class Cell {
         }
 
         return false;
+    }
+
+    public void setModuleColor(TeamPallet pallet, ServerWorld world) {
+        BlockBounds moduleBounds = bounds.offset(0, 1, 0);
+        moduleBounds = new BlockBounds(bounds.getMin(), bounds.getMax().add(0, modules.size() * 3, 0));
+
+        moduleBounds.iterator().forEachRemaining(blockPos -> {
+            BlockState state = world.getBlockState(blockPos);
+            Block block = state.getBlock();
+
+            if(block.isIn(BlockTags.PLANKS)) {
+                world.setBlockState(blockPos, pallet.woodPlank.getDefaultState());
+            } else if (block.isIn(BlockTags.WOODEN_STAIRS)) {
+                world.setBlockState(blockPos, pallet.woodStair.getDefaultState()
+                        .with(StairsBlock.FACING, state.get(StairsBlock.FACING))
+                        .with(StairsBlock.HALF, state.get(StairsBlock.HALF))
+                        .with(StairsBlock.SHAPE, state.get(StairsBlock.SHAPE))
+                );
+            } else if(block.isIn(BlockTags.WOODEN_SLABS)) {
+                world.setBlockState(blockPos, pallet.woodSlab.getDefaultState()
+                        .with(SlabBlock.TYPE, state.get(SlabBlock.TYPE))
+                );
+            }
+
+            if (block == Blocks.RED_CONCRETE || block == Blocks.BLUE_CONCRETE) {
+                world.setBlockState(blockPos, pallet.primary.getDefaultState());
+            }
+        });
     }
 
     public boolean decrementCapture(ServerWorld world, int amount, CellManager cellManager) {

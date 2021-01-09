@@ -1,5 +1,6 @@
 package us.potatoboy.fortress.game;
 
+import net.minecraft.block.Blocks;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.scoreboard.Team;
@@ -13,6 +14,23 @@ import xyz.nucleoid.plasmid.game.player.GameTeam;
 public class FortressTeams implements AutoCloseable{
     public static final GameTeam RED = new GameTeam("red", "Red", DyeColor.RED);
     public static final GameTeam BLUE = new GameTeam("blue", "Blue", DyeColor.BLUE);
+
+    public static final TeamPallet RED_PALLET = new TeamPallet(
+            Blocks.RED_CONCRETE,
+            Blocks.RED_TERRACOTTA,
+            Blocks.RED_STAINED_GLASS,
+            Blocks.CRIMSON_PLANKS,
+            Blocks.CRIMSON_STAIRS,
+            Blocks.CRIMSON_SLAB
+    );
+    public static final TeamPallet BLUE_PALLET = new TeamPallet(
+            Blocks.BLUE_CONCRETE,
+            Blocks.BLUE_TERRACOTTA,
+            Blocks.BLUE_STAINED_GLASS,
+            Blocks.WARPED_PLANKS,
+            Blocks.WARPED_STAIRS,
+            Blocks.WARPED_SLAB
+    );
 
     private final ServerScoreboard scoreboard;
 

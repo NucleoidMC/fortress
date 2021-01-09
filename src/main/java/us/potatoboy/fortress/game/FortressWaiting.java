@@ -3,7 +3,6 @@ package us.potatoboy.fortress.game;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -12,6 +11,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import us.potatoboy.fortress.game.active.FortressActive;
 import us.potatoboy.fortress.game.map.FortressMap;
 import us.potatoboy.fortress.game.map.FortressMapGenerator;
@@ -50,7 +50,8 @@ public class FortressWaiting {
 
         BubbleWorldConfig worldConfig = new BubbleWorldConfig()
                 .setGenerator(map.asGenerator(context.getServer()))
-                .setDefaultGameMode(GameMode.ADVENTURE);
+                .setDefaultGameMode(GameMode.ADVENTURE)
+                .setGameRule(GameRules.NATURAL_REGENERATION, false);
 
         return context.createOpenProcedure(worldConfig, game -> {
             GameWaitingLobby.applyTo(game, context.getConfig().playerConfig);
@@ -114,7 +115,7 @@ public class FortressWaiting {
                         "§a§l Building§r\\n" +
                         "  Place §omodules§r on your teams captured cells\\n" +
                         " §c§lCapturing§r\\n" +
-                        "  Capture adjected or enemy cells by standing on them\\n" +
+                        "  Capture adjacent cells by standing on them\\n" +
                         "\"}"
         ));
         pages.add(StringTag.of(
