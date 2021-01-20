@@ -4,7 +4,7 @@ plugins {
 }
 
 repositories {
-    maven { url = 'https://maven.gegy.dev/' }
+    maven { url = 'https://maven.nucleoid.xyz/' }
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_8
