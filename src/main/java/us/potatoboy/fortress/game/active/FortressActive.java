@@ -365,6 +365,7 @@ public class FortressActive {
     private void removePlayer(ServerPlayerEntity playerEntity) {
         if (participants.containsKey(PlayerRef.of(playerEntity))) {
             sidebar.sidebars.get(getParticipant(playerEntity)).removePlayer(playerEntity);
+            teams.removePlayer(playerEntity, getParticipant(playerEntity).team);
         }
     }
 
