@@ -1,6 +1,6 @@
 {
   "type": "fortress:fortress",
-  "name": "Fortress Rush",
+  "name": "Fortress (No recapture)",
   "map": {
     "id": "fortress:test"
   },
@@ -9,5 +9,6 @@
     "max": 100
   },
   "time_limit_mins": 5,
-  "capture_enemy": true
+  "capture_enemy": false,
+  "recapture": false
 }

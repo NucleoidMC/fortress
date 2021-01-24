@@ -50,6 +50,8 @@ public class CaptureManager {
 
             if (currentCell == null) continue;
 
+            if (!game.config.recapture && currentCell.getOwner() != null) continue;
+
             boolean ownsNeighbor = false;
 
             Pair<Integer, Integer> location = game.getMap().cellManager.getCellPos(player.getBlockPos());

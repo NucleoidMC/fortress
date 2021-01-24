@@ -10,18 +10,21 @@ public class FortressConfig {
             FortressMapConfig.CODEC.fieldOf("map").forGetter(config -> config.mapConfig),
             PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
             Codec.INT.fieldOf("time_limit_mins").forGetter(config -> config.timeLimitMins),
-            Codec.BOOL.fieldOf("capture_enemy").forGetter(config -> config.captureEnemy)
+            Codec.BOOL.fieldOf("capture_enemy").forGetter(config -> config.captureEnemy),
+            Codec.BOOL.optionalFieldOf("recapture", true).forGetter(config -> config.recapture)
     ).apply(instance, FortressConfig::new));
 
     public final FortressMapConfig mapConfig;
     public final PlayerConfig playerConfig;
     public final int timeLimitMins;
     public final boolean captureEnemy;
+    public final boolean recapture;
 
-    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy) {
+    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy, boolean recapture) {
         this.mapConfig = mapConfig;
         this.playerConfig = players;
         this.timeLimitMins = timeLimitMins;
         this.captureEnemy = captureEnemy;
+        this.recapture = recapture;
     }
 }
