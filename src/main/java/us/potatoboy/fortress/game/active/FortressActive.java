@@ -337,8 +337,10 @@ public class FortressActive {
             ServerPlayerEntity attacker = (ServerPlayerEntity) source.getAttacker();
             FortressPlayer participant = getParticipant(attacker);
 
-            participant.giveModule(attacker, participant.team, FortressModules.getRandomModule(attacker.getRandom()), 1);
-            participant.kills += 1;
+            if (participant != null) {
+                participant.giveModule(attacker, participant.team, FortressModules.getRandomModule(attacker.getRandom()), 1);
+                participant.kills += 1;
+            }
         }
 
         spawnDeadParticipant(playerEntity);
@@ -346,7 +348,6 @@ public class FortressActive {
     }
 
     private MutableText getDeathMessage(ServerPlayerEntity player, DamageSource source) {
-        FortressPlayer participant = getParticipant(player);
         ServerWorld world = gameSpace.getWorld();
         long time = world.getTime();
 
@@ -376,7 +377,33 @@ public class FortressActive {
             sidebar.sidebars.get(getParticipant(playerEntity)).addPlayer(playerEntity);
             fortressKit.giveItems(playerEntity, getParticipant(playerEntity).team);
         } else {
-            FortressSpawnLogic.resetPlayer(playerEntity, GameMode.SPECTATOR);
+            if (config.midJoin) {
+                GameTeam team = getSmallestTeam();
+                this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
+                this.teams.addPlayer(playerEntity, team);
+
+                playerEntity.inventory.clear();
+                spawnParticipant(playerEntity);
+                fortressKit.giveItems(playerEntity, getParticipant(playerEntity).team);
+            } else {
+                FortressSpawnLogic.resetPlayer(playerEntity, GameMode.SPECTATOR);
+            }
+        }
+    }
+
+    private GameTeam getSmallestTeam() {
+        // TODO: store a map of teams to players, this is bad
+        int redCount = 0;
+        int blueCount = 0;
+        for (FortressPlayer participant : this.participants.values()) {
+            if (participant.team == FortressTeams.RED) redCount++;
+            if (participant.team == FortressTeams.BLUE) blueCount++;
+        }
+
+        if (redCount <= blueCount) {
+            return FortressTeams.RED;
+        } else {
+            return FortressTeams.BLUE;
         }
     }
 
