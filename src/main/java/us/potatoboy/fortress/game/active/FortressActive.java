@@ -381,7 +381,7 @@ public class FortressActive {
                 GameTeam team = getSmallestTeam();
                 this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
                 this.teams.addPlayer(playerEntity, team);
-                sidebar.sidebars.get(getParticipant(playerEntity)).addPlayer(playerEntity);
+                sidebar.addPlayer(playerEntity, participants.get(PlayerRef.of(playerEntity)));
 
                 playerEntity.inventory.clear();
                 spawnParticipant(playerEntity);

@@ -2,6 +2,7 @@ package us.potatoboy.fortress.game.active;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Pair;
@@ -9,7 +10,6 @@ import xyz.nucleoid.plasmid.util.PlayerRef;
 import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 import xyz.nucleoid.plasmid.widget.SidebarWidget;
 
-import java.text.Format;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +27,14 @@ public class FortressSidebar {
 
             sidebars.put(entry.getValue(), scoreboard);
         }
+    }
+
+    public void addPlayer(ServerPlayerEntity player, FortressPlayer participant) {
+        SidebarWidget scoreboard = new SidebarWidget(game.gameSpace, new LiteralText("Fortress").formatted(Formatting.BOLD));
+
+        scoreboard.addPlayer(player);
+
+        sidebars.put(participant, scoreboard);
     }
 
     public void update(long time) {
