@@ -47,7 +47,7 @@ public class FortressStateManager {
         int redPercent = percents.getLeft();
         int bluePercent = percents.getRight();
 
-        if (time >= finishTime || game.config.recapture && redPercent + bluePercent == 100) {
+        if (time >= finishTime || !game.config.recapture && redPercent + bluePercent == 100) {
             if (redPercent == bluePercent) {
                 return null;
             }
