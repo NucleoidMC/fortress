@@ -22,9 +22,9 @@ public class FortressConfig {
     public final boolean captureEnemy;
     public final boolean recapture;
     public final boolean midJoin;
-    public final Integer captureTickDelay;
+    public final int captureTickDelay;
 
-    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy, boolean recapture, boolean midJoin, Integer captureTickDelay) {
+    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy, boolean recapture, boolean midJoin, int captureTickDelay) {
         this.mapConfig = mapConfig;
         this.playerConfig = players;
         this.timeLimitMins = timeLimitMins;

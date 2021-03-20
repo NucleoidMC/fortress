@@ -11,9 +11,9 @@ public class FortressMapConfig {
     ).apply(instance, FortressMapConfig::new));
 
     public final Identifier id;
-    public final Integer buildLimit;
+    public final int buildLimit;
 
-    public FortressMapConfig(Identifier id, Integer buildLimit) {
+    public FortressMapConfig(Identifier id, int buildLimit) {
         this.id = id;
         this.buildLimit = buildLimit;
     }
