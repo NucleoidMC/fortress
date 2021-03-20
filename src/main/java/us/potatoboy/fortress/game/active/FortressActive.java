@@ -156,7 +156,7 @@ public class FortressActive {
                         || structure == null
                         || cell.getOwner() != getParticipant(player).team
                         || cell.captureState != null
-                        || map.cellManager.roofHeight.isPresent() && map.cellManager.roofHeight.get() < blockPos.getY() - map.cellManager.getFloorHeight() + 3
+                        || (blockPos.getY() - map.cellManager.getFloorHeight() + 3) > config.mapConfig.buildLimit
                 ) {
                     int slot;
                     if (context.getHand() == Hand.MAIN_HAND) {

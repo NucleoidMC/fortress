@@ -12,12 +12,9 @@ import xyz.nucleoid.plasmid.game.GameOpenException;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
-import java.util.Optional;
-
 public class CellManager {
     public final Cell[][] cells;
     public final BlockBounds bounds;
-    public Optional<Integer> roofHeight = Optional.empty();
 
     public CellManager(BlockBounds bounds) {
         BlockPos max = bounds.getMax();

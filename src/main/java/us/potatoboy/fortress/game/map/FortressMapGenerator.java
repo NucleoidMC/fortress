@@ -9,7 +9,6 @@ import xyz.nucleoid.plasmid.map.template.MapTemplateSerializer;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class FortressMapGenerator {
@@ -33,7 +32,6 @@ public class FortressMapGenerator {
 
             map.redSpawns.addAll(template.getMetadata().getRegionBounds("red_spawn").collect(Collectors.toList()));
             map.blueSpawns.addAll(template.getMetadata().getRegionBounds("blue_spawn").collect(Collectors.toList()));
-            if (template.getMetadata().getData().contains("roof")) cellManager.roofHeight = Optional.of(template.getMetadata().getData().getInt("roof"));
 
             return map;
         } catch (IOException e) {

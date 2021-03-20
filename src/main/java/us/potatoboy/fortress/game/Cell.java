@@ -43,7 +43,6 @@ public class Cell {
         this.owner = owner;
         bounds.iterator().forEachRemaining(blockPos -> {
             world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos));
-            setRoof(world, blockPos, cellManager, owner);
         });
     }
 
@@ -76,7 +75,6 @@ public class Cell {
                 BlockPos blockPos = iterator.next();
 
                 world.setBlockState(blockPos, cellManager.getTeamBlock(team, center));
-                setRoof(world, blockPos, cellManager, team);
             }
         }
 
@@ -98,7 +96,6 @@ public class Cell {
         for (int z = 0, i = 0; z > -3; z--) {
             for (int x = 0; x > -3 && i < 9 - captureTicks; x--, i++) {
                 world.setBlockState(offset.add(x, 0, z), cellManager.getTeamBlock(owner, offset));
-                setRoof(world, offset.add(x, 0, z), cellManager, owner);
             }
         }
 
@@ -110,10 +107,6 @@ public class Cell {
         }
 
         return false;
-    }
-
-    private void setRoof(ServerWorld world, BlockPos pos, CellManager cellManager, GameTeam team) {
-        cellManager.roofHeight.ifPresent(integer -> world.setBlockState(pos.add(0, integer, 0), cellManager.getTeamGlass(team)));
     }
 
     public void setModuleColor(TeamPallet pallet, ServerWorld world) {
