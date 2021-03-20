@@ -21,11 +21,7 @@ public class FortressSidebar {
         this.game = game;
 
         for (Object2ObjectMap.Entry<PlayerRef, FortressPlayer> entry : Object2ObjectMaps.fastIterable(game.participants)) {
-            SidebarWidget scoreboard = new SidebarWidget(game.gameSpace, new LiteralText("Fortress").formatted(Formatting.BOLD));
-
-            scoreboard.addPlayer(entry.getKey().getEntity(game.gameSpace.getWorld()));
-
-            sidebars.put(entry.getValue(), scoreboard);
+            addPlayer(entry.getKey().getEntity(game.gameSpace.getWorld()), entry.getValue());
         }
     }
 
@@ -48,7 +44,7 @@ public class FortressSidebar {
                 content.writeLine("");
                 content.writeLine("");
 
-                Pair percents = game.getMap().getControlPercent();
+                Pair<Integer, Integer> percents = game.getMap().getControlPercent();
 
                 content.writeLine(Formatting.RED + "Red:  " + Formatting.GREEN + percents.getLeft() + "%");
                 content.writeLine(Formatting.BLUE + "Blue: " + Formatting.GREEN + percents.getRight() + "%");

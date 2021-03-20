@@ -9,6 +9,8 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
@@ -61,13 +63,8 @@ public class FortressWaiting {
 
             FortressWaiting waiting = new FortressWaiting(game.getSpace(), map, context.getConfig(), teamSelectionLobby, moduleManager);
 
-            for (Cell cell : map.cellManager.cells[0]) {
-                cell.setOwner(FortressTeams.BLUE, game.getSpace().getWorld(), map.cellManager);
-            }
-
-            for (Cell cell : map.cellManager.cells[map.cellManager.cells.length - 1]) {
-                cell.setOwner(FortressTeams.RED, game.getSpace().getWorld(), map.cellManager);
-            }
+            map.setStarterCells(FortressTeams.BLUE, "blue_start", game.getSpace().getWorld());
+            map.setStarterCells(FortressTeams.RED, "red_start", game.getSpace().getWorld());
 
             game.on(RequestStartListener.EVENT, waiting::requestStart);
             game.on(PlayerAddListener.EVENT, waiting::addPlayer);
@@ -108,30 +105,15 @@ public class FortressWaiting {
         ItemStack book = new ItemStack(Items.WRITTEN_BOOK);
 
         ListTag pages = new ListTag();
-        pages.add(StringTag.of(
-                "{\"text\":\"       " +
-                        "§l§nFORTRESS§r\\n\\n\\n" +
-                        "§oHow To Play:§r\\n\\n" +
-                        "§a§l Building§r\\n" +
-                        "  Place §omodules§r on your teams captured cells\\n" +
-                        " §c§lCapturing§r\\n" +
-                        "  Capture adjacent cells by standing on them\\n" +
-                        "\"}"
-        ));
-        pages.add(StringTag.of(
-                "{\"text\":\"" +
-                        "§3§l Earning§r\\n" +
-                        "  Earn modules by getting kills\\n\\n" +
-                        " Earn §ospecial§r modules by capturing an entire row\\n\\n" +
-                        " §6§lWinning§r\\n" +
-                        "  Control the most cells by the end of the game" +
-                        "\"}"
-        ));
+
+        pages.add(StringTag.of(Text.Serializer.toJson(new TranslatableText("text.fortress.book.page1"))));
+        pages.add(StringTag.of(Text.Serializer.toJson(new TranslatableText("text.fortress.book.page2"))));
 
         book.getOrCreateTag().put("pages", pages);
         book.getOrCreateTag().putString("title", "How To Play");
         book.getOrCreateTag().putString("author", "Potatoboy9999");
         book.getOrCreateTag().putInt("HideFlags", 63);
+        book.getOrCreateTag().putBoolean("resolved", false);
 
         player.inventory.insertStack(2, book);
     }

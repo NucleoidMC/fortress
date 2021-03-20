@@ -2,6 +2,8 @@ package us.potatoboy.fortress;
 
 import com.google.common.reflect.Reflection;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.text.Style;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.Identifier;
 import us.potatoboy.fortress.custom.block.FortressBlocks;
 import us.potatoboy.fortress.custom.item.FortressModules;
@@ -15,6 +17,8 @@ import java.util.logging.Logger;
 public class Fortress implements ModInitializer {
     public static final String ID = "fortress";
     public static final Logger LOGGER = LogManager.getLogManager().getLogger(ID);
+
+    public static final Style PREFIX_STYLE = Style.EMPTY.withColor(TextColor.fromRgb(0x858585));
 
     @Override
     public void onInitialize() {

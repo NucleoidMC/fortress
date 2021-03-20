@@ -2,7 +2,7 @@
   "type": "fortress:fortress",
   "name": "Fortress",
   "map": {
-    "id": "fortress:forest"
+    "id": "fortress:castle"
   },
   "players": {
     "min": 2,

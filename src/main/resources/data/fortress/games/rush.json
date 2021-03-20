@@ -2,7 +2,7 @@
   "type": "fortress:fortress",
   "name": "Fortress Rush",
   "map": {
-    "id": "fortress:test"
+    "id": "fortress:forest"
   },
   "players": {
     "min": 2,

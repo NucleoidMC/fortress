@@ -22,14 +22,13 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructurePlacementData;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.ServerWorldAccess;
+import us.potatoboy.fortress.Fortress;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.event.UseItemOnBlockListener;
@@ -151,7 +150,14 @@ public class FortressActive {
 
                 int placeIndex = (blockPos.getY() - map.cellManager.getFloorHeight()) / 3;
 
-                if (cell == null || cell.hasModuleAt(placeIndex) || structure == null || cell.getOwner() != getParticipant(player).team || cell.captureState != null) {
+                if (cell == null
+                        || !cell.enabled
+                        || cell.hasModuleAt(placeIndex)
+                        || structure == null
+                        || cell.getOwner() != getParticipant(player).team
+                        || cell.captureState != null
+                        || map.cellManager.roofHeight.isPresent() && map.cellManager.roofHeight.get() < blockPos.getY() - map.cellManager.getFloorHeight() + 3
+                ) {
                     int slot;
                     if (context.getHand() == Hand.MAIN_HAND) {
                         slot = player.inventory.selectedSlot;
@@ -250,7 +256,7 @@ public class FortressActive {
                     int sec = respawnDelay - (int) Math.floor((time - state.timeOfDeath) / 20.0F);
 
                     if (sec > 0 && (time - state.timeOfDeath) % 20 == 0) {
-                        Text text = new LiteralText(String.format("Respawning in %ds", sec)).formatted(Formatting.BOLD);
+                        Text text = new TranslatableText("text.fortress.respawning", sec).formatted(Formatting.BOLD);
                         player.sendMessage(text, true);
                     }
 
@@ -291,20 +297,16 @@ public class FortressActive {
             }
         }
 
-        Text title = new LiteralText("")
-                .append(winTeam.getDisplay())
-                .append(" Wins!")
+        Text title = new TranslatableText("text.fortress.wins", winTeam.getDisplay())
                 .formatted(Formatting.BOLD, winTeam.getFormatting());
 
-        Text kills = new LiteralText("Most Kills: ")
-                .append(participants.get(mostKills).displayName)
-                .append(" - ")
-                .append("" + Formatting.GREEN + participants.get(mostKills).kills);
+        Text kills = new TranslatableText("text.fortress.most_kills",
+                participants.get(mostKills).displayName,
+                participants.get(mostKills).kills);
 
-        Text captures = new LiteralText("Most Captures: ")
-                .append(participants.get(mostCaptures).displayName)
-                .append(" - ")
-                .append("" + Formatting.GREEN + participants.get(mostCaptures).captures);
+        Text captures = new TranslatableText("text.fortress.most_captures",
+                participants.get(mostCaptures).displayName,
+                participants.get(mostCaptures).captures);
 
         PlayerSet players = gameSpace.getPlayers();
         players.sendTitle(title, 1, 200, 3);
@@ -316,8 +318,8 @@ public class FortressActive {
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
-        MutableText deathMessage = getDeathMessage(playerEntity, source);
-        gameSpace.getPlayers().sendMessage(deathMessage.formatted(Formatting.GRAY));
+        Text deathMessage = getDeathMessage(playerEntity, source);
+        gameSpace.getPlayers().sendMessage(deathMessage);
 
         for (int i = 0; i < 75; i++) {
             gameSpace.getWorld().spawnParticles(
@@ -347,20 +349,10 @@ public class FortressActive {
         return ActionResult.FAIL;
     }
 
-    private MutableText getDeathMessage(ServerPlayerEntity player, DamageSource source) {
-        ServerWorld world = gameSpace.getWorld();
-        long time = world.getTime();
+    private Text getDeathMessage(ServerPlayerEntity player, DamageSource source) {
+        Text deathMes = source.getDeathMessage(player);
 
-        MutableText elimMessage = new LiteralText(" was killed by ");
-        if (source.getAttacker() != null) {
-            elimMessage.append(source.getAttacker().getDisplayName());
-        } else if (source == DamageSource.IN_WALL) {
-            elimMessage = new LiteralText(" didn't stand back");
-        } else {
-            elimMessage = new LiteralText(" died");
-        }
-
-        return new LiteralText("").append(player.getDisplayName()).append(elimMessage);
+        return new LiteralText("☠ ").setStyle(Fortress.PREFIX_STYLE).append(deathMes.shallowCopy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xbfbfbf))));
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {

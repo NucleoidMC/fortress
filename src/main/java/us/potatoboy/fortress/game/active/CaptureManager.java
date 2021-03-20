@@ -7,9 +7,11 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameMode;
+import us.potatoboy.fortress.Fortress;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.CaptureState;
@@ -49,6 +51,7 @@ public class CaptureManager {
             Cell currentCell = game.getMap().cellManager.getCell(player.getBlockPos());
 
             if (currentCell == null) continue;
+            if (!currentCell.enabled) continue;
 
             if (!game.config.recapture && currentCell.getOwner() != null) continue;
 
@@ -175,13 +178,19 @@ public class CaptureManager {
                     ServerPlayerEntity firstAttacker = attackers.iterator().next();
                     ModuleItem moduleItem = FortressModules.getRandomSpecial(firstAttacker.getRandom());
                     ItemStack stack = new ItemStack(moduleItem);
-                    for (ServerPlayerEntity player : gameSpace.getPlayers()) {
-                        player.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
-                        player.sendMessage(
-                                new TranslatableText("alert.fortress.give_module",
-                                        firstAttacker.getDisplayName(), stack.toHoverableText()),
-                                false);
-                    }
+
+                    Text rowCaptured = new LiteralText("⛏ ")
+                            .setStyle(Fortress.PREFIX_STYLE)
+                            .append(new TranslatableText("text.fortress.row_captured").formatted(captureTeam.getFormatting()));
+
+                    Text randomModule = new LiteralText("⚅ ")
+                            .setStyle(Fortress.PREFIX_STYLE)
+                            .append(new TranslatableText("text.fortress.give_module", firstAttacker.getDisplayName(), stack.toHoverableText())
+                                    .formatted(captureTeam.getFormatting()));
+
+                    gameSpace.getPlayers().sendMessage(rowCaptured);
+                    gameSpace.getPlayers().sendMessage(randomModule);
+
                     game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);
                 }
             }

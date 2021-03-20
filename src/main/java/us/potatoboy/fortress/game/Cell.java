@@ -23,15 +23,17 @@ public class Cell {
     private final BlockPos center;
     public final BlockBounds bounds;
     private List<ModuleItem> modules;
+    public boolean enabled;
 
     public CaptureState captureState;
     public int captureTicks;
 
     public Cell(BlockPos center) {
         this.center = center;
-        owner = null;
-        modules = new ArrayList();
-        bounds = new BlockBounds(center.add(-1, 0, -1), center.add(1, 0 , 1));
+        this.owner = null;
+        this.modules = new ArrayList<>();
+        this.bounds = new BlockBounds(center.add(-1, 0, -1), center.add(1, 0 , 1));
+        this.enabled = true;
     }
 
     public GameTeam getOwner() {
@@ -41,8 +43,8 @@ public class Cell {
     public void setOwner(GameTeam owner, ServerWorld world, CellManager cellManager) {
         this.owner = owner;
         bounds.iterator().forEachRemaining(blockPos -> {
-                    world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos));
-                    world.setBlockState(blockPos.add(0, 20, 0), cellManager.getTeamGlass(owner));
+            world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos));
+            setRoof(world, blockPos, cellManager, owner);
         });
     }
 
@@ -69,7 +71,7 @@ public class Cell {
     public boolean incrementCapture(GameTeam team, ServerWorld world, int amount, CellManager cellManager) {
         captureTicks += amount;
 
-        int captureIncrement = CaptureManager.CAPTURE_TICKS / 20 / 9;
+        int captureIncrement = CaptureManager.CAPTURE_TICKS / 20 / 18;
         if ((captureTicks / 20) % captureIncrement == 0) {
             Iterator<BlockPos> iterator = bounds.iterator();
             for (int i = 0; i < (captureTicks / 20) / captureIncrement; i++) {
@@ -77,7 +79,7 @@ public class Cell {
                     BlockPos blockPos = iterator.next();
 
                     world.setBlockState(blockPos, cellManager.getTeamBlock(team, center));
-                    world.setBlockState(blockPos.add(0, 20, 0), cellManager.getTeamGlass(team));
+                    setRoof(world, blockPos, cellManager, team);
                 }
             }
         }
@@ -91,6 +93,10 @@ public class Cell {
         }
 
         return false;
+    }
+
+    private void setRoof(ServerWorld world, BlockPos pos, CellManager cellManager, GameTeam team) {
+        cellManager.roofHeight.ifPresent(integer -> world.setBlockState(pos.add(0, integer, 0), cellManager.getTeamGlass(team)));
     }
 
     public void setModuleColor(TeamPallet pallet, ServerWorld world) {
@@ -125,7 +131,7 @@ public class Cell {
         captureTicks -= amount;
 
         int captureSec = captureTicks / 20;
-        int captureIncrement = CaptureManager.CAPTURE_TICKS / 20 / 9;
+        int captureIncrement = CaptureManager.CAPTURE_TICKS / 20 / 18;
         if (captureSec % captureIncrement == 0) {
             Iterator<BlockPos> iterator = BlockPos.iterate(bounds.getMax(), bounds.getMin()).iterator();
             int secureCount = ((CaptureManager.CAPTURE_TICKS / 20) - captureSec) / captureIncrement;
@@ -133,6 +139,7 @@ public class Cell {
             for (int z = 0, i = 0; z > -3; z--) {
                 for (int x = 0; x > -3 && i < secureCount; x--, i++) {
                     world.setBlockState(offset.add(x, 0 ,z), cellManager.getTeamBlock(owner, offset));
+                    setRoof(world, offset.add(x, 0, z), cellManager, owner);
                 }
             }
         }
