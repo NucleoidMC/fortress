@@ -12,7 +12,8 @@ public class FortressConfig {
             Codec.INT.fieldOf("time_limit_mins").forGetter(config -> config.timeLimitMins),
             Codec.BOOL.fieldOf("capture_enemy").forGetter(config -> config.captureEnemy),
             Codec.BOOL.optionalFieldOf("recapture", true).forGetter(config -> config.recapture),
-            Codec.BOOL.optionalFieldOf("mid_join", true).forGetter(config -> config.midJoin)
+            Codec.BOOL.optionalFieldOf("mid_join", true).forGetter(config -> config.midJoin),
+            Codec.INT.optionalFieldOf("capture_tick_delay", 10).forGetter(config -> config.captureTickDelay)
     ).apply(instance, FortressConfig::new));
 
     public final FortressMapConfig mapConfig;
@@ -21,13 +22,15 @@ public class FortressConfig {
     public final boolean captureEnemy;
     public final boolean recapture;
     public final boolean midJoin;
+    public final Integer captureTickDelay;
 
-    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy, boolean recapture, boolean midJoin) {
+    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy, boolean recapture, boolean midJoin, Integer captureTickDelay) {
         this.mapConfig = mapConfig;
         this.playerConfig = players;
         this.timeLimitMins = timeLimitMins;
         this.captureEnemy = captureEnemy;
         this.recapture = recapture;
         this.midJoin = midJoin;
+        this.captureTickDelay = captureTickDelay;
     }
 }

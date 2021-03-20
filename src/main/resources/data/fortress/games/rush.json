@@ -9,5 +9,6 @@
     "max": 100
   },
   "time_limit_mins": 5,
-  "capture_enemy": true
+  "capture_enemy": true,
+  "capture_tick_delay": 6
 }

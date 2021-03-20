@@ -8,7 +8,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
 import us.potatoboy.fortress.custom.item.ModuleItem;
-import us.potatoboy.fortress.game.active.CaptureManager;
 import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.util.BlockBounds;
@@ -71,22 +70,40 @@ public class Cell {
     public boolean incrementCapture(GameTeam team, ServerWorld world, int amount, CellManager cellManager) {
         captureTicks += amount;
 
-        int captureIncrement = CaptureManager.CAPTURE_TICKS / 20 / 18;
-        if ((captureTicks / 20) % captureIncrement == 0) {
-            Iterator<BlockPos> iterator = bounds.iterator();
-            for (int i = 0; i < (captureTicks / 20) / captureIncrement; i++) {
-                if (iterator.hasNext()) {
-                    BlockPos blockPos = iterator.next();
+        Iterator<BlockPos> iterator = bounds.iterator();
+        for (int i = 0; i < captureTicks; i++) {
+            if (iterator.hasNext()) {
+                BlockPos blockPos = iterator.next();
 
-                    world.setBlockState(blockPos, cellManager.getTeamBlock(team, center));
-                    setRoof(world, blockPos, cellManager, team);
-                }
+                world.setBlockState(blockPos, cellManager.getTeamBlock(team, center));
+                setRoof(world, blockPos, cellManager, team);
             }
         }
 
-        if (captureTicks >= CaptureManager.CAPTURE_TICKS) {
+        if (captureTicks >= 9) {
             captureTicks = 0;
             setOwner(team, world, cellManager);
+            captureState = null;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean decrementCapture(ServerWorld world, int amount, CellManager cellManager) {
+        captureTicks -= amount;
+
+        BlockPos offset = center.add(1, 0, 1);
+        for (int z = 0, i = 0; z > -3; z--) {
+            for (int x = 0; x > -3 && i < 9 - captureTicks; x--, i++) {
+                world.setBlockState(offset.add(x, 0, z), cellManager.getTeamBlock(owner, offset));
+                setRoof(world, offset.add(x, 0, z), cellManager, owner);
+            }
+        }
+
+        if (captureTicks <= 0) {
+            captureTicks = 0;
             captureState = null;
 
             return true;
@@ -125,33 +142,6 @@ public class Cell {
                 world.setBlockState(blockPos, pallet.primary.getDefaultState());
             }
         });
-    }
-
-    public boolean decrementCapture(ServerWorld world, int amount, CellManager cellManager) {
-        captureTicks -= amount;
-
-        int captureSec = captureTicks / 20;
-        int captureIncrement = CaptureManager.CAPTURE_TICKS / 20 / 18;
-        if (captureSec % captureIncrement == 0) {
-            Iterator<BlockPos> iterator = BlockPos.iterate(bounds.getMax(), bounds.getMin()).iterator();
-            int secureCount = ((CaptureManager.CAPTURE_TICKS / 20) - captureSec) / captureIncrement;
-            BlockPos offset = center.add(1, 0, 1);
-            for (int z = 0, i = 0; z > -3; z--) {
-                for (int x = 0; x > -3 && i < secureCount; x--, i++) {
-                    world.setBlockState(offset.add(x, 0 ,z), cellManager.getTeamBlock(owner, offset));
-                    setRoof(world, offset.add(x, 0, z), cellManager, owner);
-                }
-            }
-        }
-
-        if (captureTicks <= 0) {
-            captureTicks = 0;
-            captureState = null;
-
-            return true;
-        }
-
-        return false;
     }
 
     public void spawnParticles(ParticleEffect effect, ServerWorld world) {

@@ -212,6 +212,21 @@ public class FortressActive {
         ServerWorld world = gameSpace.getWorld();
         long time = world.getTime();
 
+        if (time % config.captureTickDelay == 0) {
+            captureManager.tick(world);
+        }
+
+        if (time % 20 == 0) {
+            sidebar.update(time);
+
+            Cell[][] cells = map.cellManager.cells;
+            for (int z = 0; z < cells.length; z++) {
+                for (int x = 0; x < cells[z].length; x++) {
+                    cells[z][x].tickModules(participants, world);
+                }
+            }
+        }
+
         FortressStateManager.TickResult result = stateManager.tick(time);
         if (result != FortressStateManager.TickResult.CONTINUE_TICK) {
             switch (result) {
@@ -227,18 +242,6 @@ public class FortressActive {
             }
 
             return;
-        }
-
-        if (time % 20 == 0) {
-            captureManager.tick(world, 30);
-            sidebar.update(time);
-
-            Cell[][] cells = map.cellManager.cells;
-            for (int z = 0; z < cells.length; z++) {
-                for (int x = 0; x < cells[z].length; x++) {
-                    cells[z][x].tickModules(participants, world);
-                }
-            }
         }
 
         tickDead(world, time);
