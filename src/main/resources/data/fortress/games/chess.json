@@ -1,8 +1,8 @@
 {
   "type": "fortress:fortress",
-  "name": "Fortress (Castle)",
+  "name": "Fortress (Chess)",
   "map": {
-    "id": "fortress:castle",
+    "id": "fortress:chess",
     "build_limit": 9
   },
   "players": {
