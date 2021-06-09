@@ -6,12 +6,15 @@ import net.minecraft.util.Identifier;
 
 public class FortressMapConfig {
     public static final Codec<FortressMapConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Identifier.CODEC.fieldOf("id").forGetter(config -> config.id)
+            Identifier.CODEC.fieldOf("id").forGetter(config -> config.id),
+            Codec.INT.optionalFieldOf("build_limit", 15).forGetter(config -> config.buildLimit)
     ).apply(instance, FortressMapConfig::new));
 
-    public Identifier id;
+    public final Identifier id;
+    public final int buildLimit;
 
-    public FortressMapConfig(Identifier id) {
+    public FortressMapConfig(Identifier id, int buildLimit) {
         this.id = id;
+        this.buildLimit = buildLimit;
     }
 }

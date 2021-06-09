@@ -1,6 +1,7 @@
 package us.potatoboy.fortress.game.map;
 
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import us.potatoboy.fortress.game.Cell;
@@ -42,26 +43,36 @@ public class FortressMap {
         }
     }
 
-    public Pair getControlPercent() {
-        Cell[][] cells = cellManager.cells;
+    public Pair<Integer, Integer> getControlPercent() {
+        Cell[][] rows = cellManager.cells;
 
         int redCells = 0;
         int blueCells = 0;
+        int disabledCells = 0;
 
-        for (int z = 0; z < cells.length; z++) {
-            for (int x = 0; x < cells[z].length; x++) {
-                if (cells[z][x].getOwner() == FortressTeams.RED) {
+        for (Cell[] row : rows) {
+            for (Cell cell : row) {
+                if (!cell.enabled) {
+                    disabledCells++;
+                    continue;
+                }
+
+                if (cell.getOwner() == FortressTeams.RED) {
                     redCells++;
-                } else if (cells[z][x].getOwner() == FortressTeams.BLUE) {
+                } else if (cell.getOwner() == FortressTeams.BLUE) {
                     blueCells++;
                 }
             }
         }
 
-        float size = (float) Math.pow(cells.length, 2);
+        float size = (float) Math.pow(rows.length, 2) - disabledCells;
         int redPercent = Math.round(((float)redCells / size) * 100);
         int bluePercent = Math.round(((float)blueCells / size) * 100);
 
-        return new Pair(redPercent, bluePercent);
+        return new Pair<>(redPercent, bluePercent);
+    }
+
+    public void setStarterCells(GameTeam team, String region, ServerWorld world) {
+        template.getMetadata().getRegionBounds(region).forEach(bounds -> cellManager.setCellsOwner(bounds, team, world));
     }
 }

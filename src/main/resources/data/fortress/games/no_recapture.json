@@ -2,7 +2,7 @@
   "type": "fortress:fortress",
   "name": "Fortress (No recapture)",
   "map": {
-    "id": "fortress:test"
+    "id": "fortress:forest"
   },
   "players": {
     "min": 2,

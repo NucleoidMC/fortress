@@ -4,6 +4,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
@@ -37,6 +38,24 @@ public class CellManager {
         }
 
         this.bounds = bounds;
+    }
+
+    public void disableCells(BlockBounds bounds) {
+        BlockPos pos = new BlockPos(bounds.getMax().getX(), bounds.getMin().getY(), bounds.getMax().getZ());
+        BlockBounds layerBounds = new BlockBounds(bounds.getMin(), pos);
+
+        layerBounds.iterator().forEachRemaining(blockPos -> {
+            getCell(blockPos).enabled = false;
+        });
+    }
+
+    public void setCellsOwner(BlockBounds bounds, GameTeam team, ServerWorld world) {
+        BlockPos pos = new BlockPos(bounds.getMax().getX(), bounds.getMin().getY(), bounds.getMax().getZ());
+        BlockBounds layerBounds = new BlockBounds(bounds.getMin(), pos);
+
+        layerBounds.iterator().forEachRemaining(blockPos -> {
+            getCell(blockPos).setOwner(team, world, this);
+        });
     }
 
     public Cell getCell(BlockPos blockPos) {

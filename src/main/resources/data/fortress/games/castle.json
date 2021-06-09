@@ -1,8 +1,9 @@
 {
   "type": "fortress:fortress",
-  "name": "Fortress",
+  "name": "Fortress (Castle)",
   "map": {
-    "id": "fortress:forest"
+    "id": "fortress:castle",
+    "build_limit": 9
   },
   "players": {
     "min": 2,

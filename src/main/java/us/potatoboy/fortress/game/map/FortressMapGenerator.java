@@ -6,7 +6,6 @@ import us.potatoboy.fortress.game.CellManager;
 import xyz.nucleoid.plasmid.game.GameOpenException;
 import xyz.nucleoid.plasmid.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.map.template.MapTemplateSerializer;
-import xyz.nucleoid.plasmid.map.template.TemplateRegion;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import java.io.IOException;
@@ -29,8 +28,10 @@ public class FortressMapGenerator {
 
             map.waitingSpawn = getRegion(template, "waiting_spawn");
 
-            map.redSpawns.addAll(template.getMetadata().getRegions("red_spawn").map(TemplateRegion::getBounds).collect(Collectors.toList()));
-            map.blueSpawns.addAll(template.getMetadata().getRegions("blue_spawn").map(TemplateRegion::getBounds).collect(Collectors.toList()));
+            template.getMetadata().getRegionBounds("disabled").forEach(cellManager::disableCells);
+
+            map.redSpawns.addAll(template.getMetadata().getRegionBounds("red_spawn").collect(Collectors.toList()));
+            map.blueSpawns.addAll(template.getMetadata().getRegionBounds("blue_spawn").collect(Collectors.toList()));
 
             return map;
         } catch (IOException e) {

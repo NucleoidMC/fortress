@@ -7,9 +7,11 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameMode;
+import us.potatoboy.fortress.Fortress;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.CaptureState;
@@ -24,7 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class CaptureManager {
-    public static final int CAPTURE_TICKS = 20 * 9;
+    public static final int CAPTURE_TICK_DELAY = 10;
 
     private final GameSpace gameSpace;
     private final FortressActive game;
@@ -36,7 +38,7 @@ public class CaptureManager {
         this.game = game;
     }
 
-    public void tick(ServerWorld world, int interval) {
+    public void tick(ServerWorld world) {
         HashMap<Cell, HashSet<ServerPlayerEntity>> cells = new HashMap<>();
 
         for (Object2ObjectMap.Entry<PlayerRef, FortressPlayer> entry : Object2ObjectMaps.fastIterable(game.participants)) {
@@ -49,6 +51,7 @@ public class CaptureManager {
             Cell currentCell = game.getMap().cellManager.getCell(player.getBlockPos());
 
             if (currentCell == null) continue;
+            if (!currentCell.enabled) continue;
 
             if (!game.config.recapture && currentCell.getOwner() != null) continue;
 
@@ -86,11 +89,11 @@ public class CaptureManager {
         }
 
         for (Cell cell : cells.keySet()) {
-            tickCell(cell, cells.get(cell), interval);
+            tickCell(cell, cells.get(cell));
         }
     }
 
-    private void tickCell(Cell cell, HashSet<ServerPlayerEntity> players, int interval) {
+    private void tickCell(Cell cell, HashSet<ServerPlayerEntity> players) {
         HashSet<ServerPlayerEntity> defenders = new HashSet<>();
         HashSet<ServerPlayerEntity> attackers = new HashSet<>();
 
@@ -125,28 +128,28 @@ public class CaptureManager {
         cell.captureState = captureState;
 
         if (captureState == CaptureState.CAPTURING) {
-            tickCapturing(cell, interval, attackers);
+            tickCapturing(cell, attackers);
         } else if (captureState == CaptureState.SECURING) {
-            tickSecuring(cell, interval);
+            tickSecuring(cell, defenders);
         } else if (captureState == CaptureState.CONTESTED) {
-            tickContested(cell, interval);
+            tickContested(cell);
         }
     }
 
-    private void tickContested(Cell cell, int interval) {
+    private void tickContested(Cell cell) {
         ServerWorld world = gameSpace.getWorld();
 
         cell.spawnParticles(ParticleTypes.ANGRY_VILLAGER, world);
     }
 
-    private void tickSecuring(Cell cell, int interval) {
-        if (cell.decrementCapture(game.gameSpace.getWorld(), interval, game.getMap().cellManager)) {
+    private void tickSecuring(Cell cell, HashSet<ServerPlayerEntity> defenders) {
+        if (cell.decrementCapture(game.gameSpace.getWorld(), defenders.size(), game.getMap().cellManager)) {
             //secured
             cell.spawnTeamParticles(cell.getOwner(), gameSpace.getWorld());
         }
     }
 
-    private void tickCapturing(Cell cell, int interval, HashSet<ServerPlayerEntity> attackers) {
+    private void tickCapturing(Cell cell, HashSet<ServerPlayerEntity> attackers) {
         if (cell.captureTicks == 0) {
             //began capturing
         }
@@ -154,7 +157,7 @@ public class CaptureManager {
         GameTeam captureTeam = game.getParticipant(attackers.iterator().next()).team;
         ServerWorld world = gameSpace.getWorld();
 
-        if (cell.incrementCapture(captureTeam, world, interval * attackers.size(), game.getMap().cellManager)) {
+        if (cell.incrementCapture(captureTeam, world, attackers.size(), game.getMap().cellManager)) {
             //captured
             cell.spawnTeamParticles(captureTeam, world);
             cell.setModuleColor(captureTeam == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
@@ -175,13 +178,19 @@ public class CaptureManager {
                     ServerPlayerEntity firstAttacker = attackers.iterator().next();
                     ModuleItem moduleItem = FortressModules.getRandomSpecial(firstAttacker.getRandom());
                     ItemStack stack = new ItemStack(moduleItem);
-                    for (ServerPlayerEntity player : gameSpace.getPlayers()) {
-                        player.sendMessage(new LiteralText("New row captured!").formatted(captureTeam.getFormatting()), false);
-                        player.sendMessage(
-                                new TranslatableText("alert.fortress.give_module",
-                                        firstAttacker.getDisplayName(), stack.toHoverableText()),
-                                false);
-                    }
+
+                    Text rowCaptured = new LiteralText("⛏ ")
+                            .setStyle(Fortress.PREFIX_STYLE)
+                            .append(new TranslatableText("text.fortress.row_captured").formatted(captureTeam.getFormatting()));
+
+                    Text randomModule = new LiteralText("⚅ ")
+                            .setStyle(Fortress.PREFIX_STYLE)
+                            .append(new TranslatableText("text.fortress.give_module", firstAttacker.getDisplayName(), stack.toHoverableText())
+                                    .formatted(captureTeam.getFormatting()));
+
+                    gameSpace.getPlayers().sendMessage(rowCaptured);
+                    gameSpace.getPlayers().sendMessage(randomModule);
+
                     game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);
                 }
             }
