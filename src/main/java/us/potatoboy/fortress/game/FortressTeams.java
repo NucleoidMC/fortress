@@ -2,18 +2,33 @@ package us.potatoboy.fortress.game;
 
 import net.minecraft.block.Blocks;
 import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.scoreboard.ServerScoreboard;
-import net.minecraft.scoreboard.Team;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DyeColor;
-import org.apache.commons.lang3.RandomStringUtils;
+import xyz.nucleoid.plasmid.game.GameActivity;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.game.common.team.TeamManager;
 
-public class FortressTeams implements AutoCloseable{
-    public static final GameTeam RED = new GameTeam("red", "Red", DyeColor.RED);
-    public static final GameTeam BLUE = new GameTeam("blue", "Blue", DyeColor.BLUE);
+import java.util.Random;
+
+public class FortressTeams {
+    public static final GameTeam RED = new GameTeam(new GameTeamKey("red"), GameTeamConfig.builder()
+            .setName(new TranslatableText("color.minecraft.red"))
+            .setColors(GameTeamConfig.Colors.from(DyeColor.RED))
+            .setFriendlyFire(false)
+            .setCollision(AbstractTeam.CollisionRule.NEVER)
+            .build()
+    );
+    public static final GameTeam BLUE = new GameTeam(new GameTeamKey("blue"), GameTeamConfig.builder()
+            .setName(new TranslatableText("color.minecraft.blue"))
+            .setColors(GameTeamConfig.Colors.from(DyeColor.BLUE))
+            .setFriendlyFire(false)
+            .setCollision(AbstractTeam.CollisionRule.NEVER)
+            .build()
+    );
 
     public static final TeamPallet RED_PALLET = new TeamPallet(
             Blocks.RED_CONCRETE,
@@ -32,44 +47,43 @@ public class FortressTeams implements AutoCloseable{
             Blocks.WARPED_SLAB
     );
 
-    private final ServerScoreboard scoreboard;
-
-    final Team red;
-    final Team blue;
+    private final GameSpace gameSpace;
+    private TeamManager manager;
 
     public FortressTeams(GameSpace gameSpace) {
-        this.scoreboard = gameSpace.getServer().getScoreboard();
-
-        this.red = createTeam(RED);
-        this.blue = createTeam(BLUE);
+        this.gameSpace = gameSpace;
     }
 
-    private Team createTeam(GameTeam team) {
-        Team scoreboardTeam = scoreboard.addTeam(RandomStringUtils.randomAlphabetic(16));
-        scoreboardTeam.setDisplayName(new LiteralText(team.getDisplay()).formatted(team.getFormatting()));
-        scoreboardTeam.setColor(team.getFormatting());
-        scoreboardTeam.setFriendlyFireAllowed(false);
-        scoreboardTeam.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-        return scoreboardTeam;
+    public void applyTo(GameActivity game) {
+        this.manager = TeamManager.addTo(game);
+
+        manager.addTeam(RED);
+        manager.addTeam(BLUE);
     }
 
-    @Override
-    public void close() throws Exception {
-        scoreboard.removeTeam(this.red);
-        scoreboard.removeTeam(this.blue);
+    public GameTeamConfig getConfig(GameTeamKey key) {
+        return manager.getTeamConfig(key);
     }
 
-    public void addPlayer(ServerPlayerEntity playerEntity, GameTeam team) {
-        Team scoreboardTeam = this.getScoreboardTeam(team);
-        scoreboard.addPlayerToTeam(playerEntity.getEntityName(), scoreboardTeam);
+    public GameTeamKey getSmallestTeam(Random random) {
+        GameTeamKey smallest = null;
+        int red = manager.playersIn(RED.key()).size();
+        int blue = manager.playersIn(BLUE.key()).size();
+
+        if (red > blue) {
+            return RED.key();
+        } else if (blue > red) {
+            return BLUE.key();
+        }
+
+        return random.nextBoolean() ? RED.key() : BLUE.key();
     }
 
-    public void removePlayer(ServerPlayerEntity playerEntity, GameTeam team) {
-        Team scoreboardTeam = this.getScoreboardTeam(team);
-        scoreboard.removePlayerFromTeam(playerEntity.getEntityName(), scoreboardTeam);
+    public void addPlayer(ServerPlayerEntity playerEntity, GameTeamKey team) {
+        manager.addPlayerTo(playerEntity, team);
     }
 
-    private Team getScoreboardTeam(GameTeam team) {
-        return team == RED ? red : blue;
+    public void removePlayer(ServerPlayerEntity playerEntity, GameTeamKey team) {
+        manager.removePlayerFrom(playerEntity, team);
     }
 }

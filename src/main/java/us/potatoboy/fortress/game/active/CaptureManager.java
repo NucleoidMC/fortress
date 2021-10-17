@@ -19,7 +19,8 @@ import us.potatoboy.fortress.game.Cell;
 import us.potatoboy.fortress.game.CellManager;
 import us.potatoboy.fortress.game.FortressTeams;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class CaptureManager {
     private final GameSpace gameSpace;
     private final FortressActive game;
 
-    private HashMap<GameTeam, HashSet<Integer>> capturedRows = new HashMap<>();
+    private HashMap<GameTeamKey, HashSet<Integer>> capturedRows = new HashMap<>();
 
     CaptureManager(FortressActive game) {
         this.gameSpace = game.gameSpace;
@@ -53,7 +54,7 @@ public class CaptureManager {
             if (currentCell == null) continue;
             if (!currentCell.enabled) continue;
 
-            if (!game.config.recapture && currentCell.getOwner() != null) continue;
+            if (!game.config.recapture() && currentCell.getOwner() != null) continue;
 
             boolean ownsNeighbor = false;
 
@@ -61,7 +62,7 @@ public class CaptureManager {
             Cell[][] mapCells = game.getMap().cellManager.cells;
             if (location == null) continue;
 
-            for (int x = location.getLeft() - 1; x <= (location.getLeft()) + 1; x += 1 ) {
+            for (int x = location.getLeft() - 1; x <= (location.getLeft()) + 1; x += 1) {
                 for (int z = location.getRight() - 1; z <= (location.getRight() + 1); z += 1) {
                     if (x < 0 || z < 0 || x >= mapCells.length || z >= mapCells[x].length) {
                         continue;
@@ -74,7 +75,7 @@ public class CaptureManager {
                 }
             }
 
-            if (game.config.captureEnemy) {
+            if (game.config.captureEnemy()) {
                 if (currentCell.getOwner() == null) {
                     if (!ownsNeighbor) {
                         continue;
@@ -137,15 +138,15 @@ public class CaptureManager {
     }
 
     private void tickContested(Cell cell) {
-        ServerWorld world = gameSpace.getWorld();
+        ServerWorld world = game.world;
 
         cell.spawnParticles(ParticleTypes.ANGRY_VILLAGER, world);
     }
 
     private void tickSecuring(Cell cell, HashSet<ServerPlayerEntity> defenders) {
-        if (cell.decrementCapture(game.gameSpace.getWorld(), defenders.size(), game.getMap().cellManager)) {
+        if (cell.decrementCapture(game.world, defenders.size(), game.getMap().cellManager)) {
             //secured
-            cell.spawnTeamParticles(cell.getOwner(), gameSpace.getWorld());
+            cell.spawnTeamParticles(game.teams.getConfig(cell.getOwner()), game.world);
         }
     }
 
@@ -154,13 +155,14 @@ public class CaptureManager {
             //began capturing
         }
 
-        GameTeam captureTeam = game.getParticipant(attackers.iterator().next()).team;
-        ServerWorld world = gameSpace.getWorld();
+        GameTeamKey captureTeam = game.getParticipant(attackers.iterator().next()).team;
+        GameTeamConfig teamConfig = game.teams.getConfig(captureTeam);
+        ServerWorld world = game.world;
 
         if (cell.incrementCapture(captureTeam, world, attackers.size(), game.getMap().cellManager)) {
             //captured
-            cell.spawnTeamParticles(captureTeam, world);
-            cell.setModuleColor(captureTeam == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
+            cell.spawnTeamParticles(teamConfig, world);
+            cell.setModuleColor(captureTeam == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
 
             CellManager cellManager = game.getMap().cellManager;
             int cellCollum = cellManager.getCellPos(cell.getCenter()).getLeft();
@@ -172,7 +174,7 @@ public class CaptureManager {
                     capturedRows.get(captureTeam).add(cellCollum);
 
                     for (Cell rowCell : cellManager.cells[cellCollum]) {
-                        rowCell.spawnTeamParticles(captureTeam, world);
+                        rowCell.spawnTeamParticles(teamConfig, world);
                     }
 
                     ServerPlayerEntity firstAttacker = attackers.iterator().next();
@@ -181,12 +183,12 @@ public class CaptureManager {
 
                     Text rowCaptured = new LiteralText("⛏ ")
                             .setStyle(Fortress.PREFIX_STYLE)
-                            .append(new TranslatableText("text.fortress.row_captured").formatted(captureTeam.getFormatting()));
+                            .append(new TranslatableText("text.fortress.row_captured").formatted(teamConfig.chatFormatting()));
 
                     Text randomModule = new LiteralText("⚅ ")
                             .setStyle(Fortress.PREFIX_STYLE)
                             .append(new TranslatableText("text.fortress.give_module", firstAttacker.getDisplayName(), stack.toHoverableText())
-                                    .formatted(captureTeam.getFormatting()));
+                                    .formatted(teamConfig.chatFormatting()));
 
                     gameSpace.getPlayers().sendMessage(rowCaptured);
                     gameSpace.getPlayers().sendMessage(randomModule);
@@ -203,7 +205,7 @@ public class CaptureManager {
         }
     }
 
-    public void setRowCaptured(GameTeam team, int collum) {
+    public void setRowCaptured(GameTeamKey team, int collum) {
         capturedRows.putIfAbsent(team, new HashSet<>());
         capturedRows.get(team).add(collum);
     }

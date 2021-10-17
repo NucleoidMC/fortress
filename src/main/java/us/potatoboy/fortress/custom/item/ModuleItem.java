@@ -1,16 +1,16 @@
 package us.potatoboy.fortress.custom.item;
 
+import eu.pb4.polymer.item.VirtualItem;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import net.minecraft.item.Item;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import us.potatoboy.fortress.game.active.FortressPlayer;
-import xyz.nucleoid.plasmid.fake.FakeItem;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
-public class ModuleItem extends Item implements FakeItem {
+public class ModuleItem extends Item implements VirtualItem {
     private final Item proxy;
     public final Identifier structure;
 
@@ -20,12 +20,11 @@ public class ModuleItem extends Item implements FakeItem {
         this.structure = structure;
     }
 
-    @Override
-    public Item asProxy() {
-        return proxy;
+    public void tick(BlockPos center, Object2ObjectMap<PlayerRef, FortressPlayer> participants, GameTeamKey owner, ServerWorld world) {
     }
 
-    public void tick(BlockPos center, Object2ObjectMap<PlayerRef, FortressPlayer> participants, GameTeam owner, ServerWorld world) {
-        return;
+    @Override
+    public Item getVirtualItem() {
+        return proxy;
     }
 }

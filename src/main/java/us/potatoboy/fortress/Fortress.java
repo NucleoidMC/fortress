@@ -24,8 +24,8 @@ public class Fortress implements ModInitializer {
     public void onInitialize() {
         GameType.register(
                 identifier("fortress"),
-                FortressWaiting::open,
-                FortressConfig.CODEC
+                FortressConfig.CODEC,
+                FortressWaiting::open
         );
 
         Reflection.initialize(FortressModules.class);

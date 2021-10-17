@@ -6,13 +6,13 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
 
 import java.util.Random;
 
 public class FortressSpawnLogic {
     public static void resetPlayer(ServerPlayerEntity player, GameMode gameMode) {
-        player.setGameMode(gameMode);
+        player.changeGameMode(gameMode);
         player.setVelocity(Vec3d.ZERO);
         player.getHungerManager().setFoodLevel(20);
         player.fallDistance = 0.0f;
@@ -21,8 +21,8 @@ public class FortressSpawnLogic {
     }
 
     public static Vec3d choosePos(Random random, BlockBounds bounds, float aboveGround) {
-        BlockPos min = bounds.getMin();
-        BlockPos max = bounds.getMax();
+        BlockPos min = bounds.min();
+        BlockPos max = bounds.max();
 
         double x = MathHelper.nextDouble(random, min.getX(), max.getX());
         double z = MathHelper.nextDouble(random, min.getZ(), max.getZ());

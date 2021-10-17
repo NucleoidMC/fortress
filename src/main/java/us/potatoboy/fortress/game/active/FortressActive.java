@@ -1,9 +1,11 @@
 package us.potatoboy.fortress.game.active;
 
 import com.google.common.collect.Multimap;
+import eu.pb4.sidebars.api.Sidebar;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.damage.DamageSource;
@@ -24,26 +26,31 @@ import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructurePlacementData;
 import net.minecraft.text.*;
 import net.minecraft.util.*;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.ServerWorldAccess;
 import us.potatoboy.fortress.Fortress;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
-import us.potatoboy.fortress.event.UseItemOnBlockListener;
 import us.potatoboy.fortress.game.*;
 import us.potatoboy.fortress.game.map.FortressMap;
+import us.potatoboy.fortress.utility.TextUtil;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
 import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.event.*;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.game.player.JoinResult;
+import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.game.player.PlayerSet;
-import xyz.nucleoid.plasmid.game.rule.GameRule;
-import xyz.nucleoid.plasmid.game.rule.RuleResult;
+import xyz.nucleoid.plasmid.game.rule.GameRuleType;
 import xyz.nucleoid.plasmid.util.PlayerRef;
-import xyz.nucleoid.plasmid.widget.GlobalWidgets;
+import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
+import xyz.nucleoid.stimuli.event.block.BlockPunchEvent;
+import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
+import xyz.nucleoid.stimuli.event.projectile.ArrowFireEvent;
 
 import java.util.Map;
 
@@ -51,9 +58,9 @@ public class FortressActive {
     public final FortressConfig config;
 
     public final GameSpace gameSpace;
+    public final ServerWorld world;
+    public final FortressTeams teams;
     private final FortressMap map;
-
-    private final FortressTeams teams;
 
     public final Object2ObjectMap<PlayerRef, FortressPlayer> participants;
 
@@ -61,65 +68,105 @@ public class FortressActive {
     final CaptureManager captureManager;
     final FortressStateManager stateManager;
 
-    final FortressSidebar sidebar;
+    protected final Sidebar globalSidebar = new Sidebar(Sidebar.Priority.MEDIUM);
 
     private final FortressKit fortressKit;
 
-    private FortressActive(GameSpace gameSpace, FortressMap map, FortressConfig config, GlobalWidgets widgets, Multimap<GameTeam, ServerPlayerEntity> players, ModuleManager moduleManager) {
+    private FortressActive(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, GlobalWidgets widgets, Multimap<GameTeamKey, ServerPlayerEntity> players, ModuleManager moduleManager, FortressTeams teams) {
         this.gameSpace = gameSpace;
+        this.world = world;
         this.config = config;
         this.map = map;
         this.moduleManager = moduleManager;
+        this.teams = teams;
         this.participants = new Object2ObjectOpenHashMap<>();
         this.captureManager = new CaptureManager(this);
         this.stateManager = new FortressStateManager(this);
 
-        this.teams = gameSpace.addResource(new FortressTeams(gameSpace));
-
-        for (GameTeam team : players.keySet()) {
+        for (GameTeamKey team : players.keySet()) {
             for (ServerPlayerEntity playerEntity : players.get(team)) {
                 this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
                 this.teams.addPlayer(playerEntity, team);
             }
         }
 
-        captureManager.setRowCaptured(FortressTeams.BLUE, 0);
-        captureManager.setRowCaptured(FortressTeams.RED, map.cellManager.cells.length - 1);
+        captureManager.setRowCaptured(FortressTeams.BLUE.key(), 0);
+        captureManager.setRowCaptured(FortressTeams.RED.key(), map.cellManager.cells.length - 1);
 
-        this.sidebar = new FortressSidebar(this, widgets);
-        this.fortressKit = new FortressKit(gameSpace.getWorld());
+        buildSidebar();
+        globalSidebar.show();
+
+        this.fortressKit = new FortressKit(world, teams);
     }
 
-    public static void open(GameSpace gameSpace, FortressMap map, FortressConfig config, Multimap<GameTeam, ServerPlayerEntity> players, ModuleManager moduleManager) {
-        gameSpace.openGame(game -> {
-            GlobalWidgets widgets = new GlobalWidgets(game);
+    private void buildSidebar() {
+        this.globalSidebar.setTitle(TextUtil.getText("sidebar", "title").setStyle(Style.EMPTY.withColor(Formatting.GOLD).withBold(true)));
 
-            FortressActive active = new FortressActive(gameSpace, map, config, widgets, players, moduleManager);
+        this.globalSidebar.set(builder -> {
+            builder.add(player -> {
+                long ticksUntilEnd = Math.max(stateManager.finishTime - world.getTime(), 0);
+                long secondsUntilEnd = ticksUntilEnd / 20;
 
-            game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-            game.setRule(GameRule.PORTALS, RuleResult.DENY);
-            game.setRule(GameRule.PVP, RuleResult.ALLOW);
-            game.setRule(GameRule.HUNGER, RuleResult.DENY);
-            game.setRule(GameRule.INTERACTION, RuleResult.ALLOW);
-            game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
-            game.setRule(GameRule.PLACE_BLOCKS, RuleResult.ALLOW);
-            game.setRule(GameRule.BREAK_BLOCKS, RuleResult.ALLOW);
-            game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+                long minutes = secondsUntilEnd / 60;
+                long seconds = secondsUntilEnd % 60;
 
-            game.on(GameOpenListener.EVENT, active::onOpen);
-            game.on(GameCloseListener.EVENT, active::onClose);
-            game.on(PlaceBlockListener.EVENT, active::onPlaceBlock);
-            game.on(UseItemOnBlockListener.EVENT, active::onUseItemOnBlock);
-            game.on(PlayerFireArrowListener.EVENT, active::onFireArrow);
-            game.on(PlayerPunchBlockListener.EVENT, active::onAttackBlock);
+                return TextUtil.getText("sidebar", "time_left", new LiteralText(String.format("%02d:%02d", minutes, seconds)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xd9d9d9)));
+            });
 
-            game.on(GameTickListener.EVENT, active::tick);
+            builder.add(LiteralText.EMPTY);
 
-            game.on(OfferPlayerListener.EVENT, player -> JoinResult.ok());
-            game.on(PlayerAddListener.EVENT, active::addPlayer);
-            game.on(PlayerRemoveListener.EVENT, active::removePlayer);
+            Pair<Integer, Integer> percents = map.getControlPercent();
 
-            game.on(PlayerDeathListener.EVENT, active::onPlayerDeath);
+            builder.add(player -> TextUtil.getText("sidebar", "percent.red", new LiteralText(percents.getLeft().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.RED));
+            builder.add(player -> TextUtil.getText("sidebar", "percent.blue", new LiteralText(percents.getRight().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.BLUE));
+
+            builder.add(LiteralText.EMPTY);
+
+            builder.add(player -> {
+                FortressPlayer participant = participants.get(PlayerRef.of(player));
+
+                return TextUtil.getText("sidebar", "stats",
+                        new LiteralText("" + participant.kills).formatted(Formatting.GREEN),
+                        new LiteralText("" + participant.deaths).formatted(Formatting.GREEN),
+                        new LiteralText("" + participant.captures).formatted(Formatting.GREEN)
+                ).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xd9d9d9)));
+            });
+        });
+    }
+
+    public static void open(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, Multimap<GameTeamKey, ServerPlayerEntity> players, ModuleManager moduleManager) {
+        gameSpace.setActivity(game -> {
+            var widgets = GlobalWidgets.addTo(game);
+
+            var teams = new FortressTeams(gameSpace);
+            teams.applyTo(game);
+
+            FortressActive active = new FortressActive(gameSpace, world, map, config, widgets, players, moduleManager, teams);
+
+            game.deny(GameRuleType.CRAFTING);
+            game.deny(GameRuleType.PORTALS);
+            game.allow(GameRuleType.PVP);
+            game.deny(GameRuleType.HUNGER);
+            game.allow(GameRuleType.INTERACTION);
+            game.allow(GameRuleType.FALL_DAMAGE);
+            game.allow(GameRuleType.PLACE_BLOCKS);
+            game.allow(GameRuleType.BREAK_BLOCKS);
+            game.deny(GameRuleType.THROW_ITEMS);
+
+            game.listen(GameActivityEvents.ENABLE, active::onOpen);
+            game.listen(GameActivityEvents.DISABLE, active::onClose);
+            game.listen(BlockPlaceEvent.BEFORE, active::onPlaceBlock);
+            game.listen(BlockUseEvent.EVENT, active::onUseBlock);
+            game.listen(ArrowFireEvent.EVENT, active::onFireArrow);
+            game.listen(BlockPunchEvent.EVENT, active::onAttackBlock);
+
+            game.listen(GameActivityEvents.TICK, active::tick);
+
+            game.listen(GamePlayerEvents.OFFER, offer -> offer.accept(world, FortressSpawnLogic.choosePos(offer.player().getRandom(), map.waitingSpawn, 0f)));
+            game.listen(GamePlayerEvents.ADD, active::addPlayer);
+            game.listen(GamePlayerEvents.REMOVE, active::removePlayer);
+
+            game.listen(PlayerDeathEvent.EVENT, active::onPlayerDeath);
         });
     }
 
@@ -135,18 +182,16 @@ public class FortressActive {
         return ActionResult.PASS;
     }
 
-    private ActionResult onUseItemOnBlock(ServerPlayerEntity player, BlockPos pos, ItemUsageContext context) {
-        if (context.getStack().getItem() instanceof ModuleItem) {
+    private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
+        ItemStack stack = player.getStackInHand(hand);
 
-            ItemStack itemStack = context.getStack();
-            ModuleItem moduleItem = (ModuleItem) context.getStack().getItem();
-
-            BlockPos blockPos = context.getBlockPos();
-            Direction direction = context.getSide();
+        if (stack.getItem() instanceof ModuleItem moduleItem) {
+            BlockPos blockPos = hitResult.getBlockPos();
+            Direction direction = hitResult.getSide();
             BlockPos blockPos2 = blockPos.offset(direction);
-            if (context.getWorld().canPlayerModifyAt(player, context.getBlockPos()) && player.canPlaceOn(blockPos2, direction, itemStack)) {
+            if (world.canPlayerModifyAt(player, hitResult.getBlockPos()) && player.canPlaceOn(blockPos2, direction, stack)) {
                 Cell cell = map.cellManager.getCell(blockPos);
-                Structure structure = moduleManager.getStructure((ModuleItem) context.getStack().getItem());
+                Structure structure = moduleManager.getStructure(moduleItem);
 
                 int placeIndex = (blockPos.getY() - map.cellManager.getFloorHeight()) / 3;
 
@@ -156,48 +201,47 @@ public class FortressActive {
                         || structure == null
                         || cell.getOwner() != getParticipant(player).team
                         || cell.captureState != null
-                        || (blockPos.getY() - map.cellManager.getFloorHeight() + 3) > config.mapConfig.buildLimit
+                        || (blockPos.getY() - map.cellManager.getFloorHeight() + 3) > config.mapConfig().buildLimit()
                 ) {
                     int slot;
-                    if (context.getHand() == Hand.MAIN_HAND) {
-                        slot = player.inventory.selectedSlot;
+                    if (hand == Hand.MAIN_HAND) {
+                        slot = player.getInventory().selectedSlot;
                     } else {
                         slot = 40; // offhand
                     }
 
-                    player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-2, slot, context.getStack()));
+                    player.networkHandler.sendPacket(new ScreenHandlerSlotUpdateS2CPacket(-2, 0, slot, stack));
                     return ActionResult.FAIL;
                 }
 
                 StructurePlacementData structurePlacementData = new StructurePlacementData();
                 BlockPos structurePos = new BlockPos(cell.getCenter()).add(0, 1, 0).add(0, placeIndex * 3, 0);
-                Direction playerDirection = context.getPlayerFacing();
+                BlockPos structurePivot = new BlockPos(structurePos);
+                Direction playerDirection = player.getHorizontalFacing();
                 switch (playerDirection) {
-                    case NORTH:
-                        structurePos = structurePos.add(-1, 0, -1);
-                        break;
-                    case SOUTH:
+                    case NORTH -> structurePos = structurePos.add(-1, 0, -1);
+                    case SOUTH -> {
                         structurePlacementData.setMirror(BlockMirror.LEFT_RIGHT);
                         structurePos = structurePos.add(-1, 0, 1);
-                        break;
-                    case WEST:
+                    }
+                    case WEST -> {
                         structurePlacementData.setRotation(BlockRotation.COUNTERCLOCKWISE_90);
                         structurePos = structurePos.add(-1, 0, 1);
-                        break;
-                    case EAST:
+                    }
+                    case EAST -> {
                         structurePlacementData.setRotation(BlockRotation.CLOCKWISE_90);
                         structurePos = structurePos.add(1, 0, -1);
-                        break;
+                    }
                 }
 
-                structure.place((ServerWorldAccess) context.getWorld(), structurePos, structurePlacementData, player.getRandom());
+                structure.place(world, structurePos, structurePivot, structurePlacementData, player.getRandom(), Block.NOTIFY_LISTENERS);
 
                 ParticleEffect effect = new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.OAK_PLANKS.getDefaultState());
-                cell.spawnParticles(effect, gameSpace.getWorld());
+                cell.spawnParticles(effect, world);
 
-                context.getStack().decrement(1);
+                stack.decrement(1);
                 cell.addModule(moduleItem);
-                cell.setModuleColor(cell.getOwner() == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, (ServerWorld) context.getWorld());
+                cell.setModuleColor(cell.getOwner() == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
 
                 return ActionResult.SUCCESS;
             }
@@ -209,20 +253,18 @@ public class FortressActive {
     }
 
     private void tick() {
-        ServerWorld world = gameSpace.getWorld();
         long time = world.getTime();
 
-        if (time % config.captureTickDelay == 0) {
+        if (time % config.captureTickDelay() == 0) {
             captureManager.tick(world);
         }
 
         if (time % 20 == 0) {
-            sidebar.update(time);
 
             Cell[][] cells = map.cellManager.cells;
-            for (int z = 0; z < cells.length; z++) {
-                for (int x = 0; x < cells[z].length; x++) {
-                    cells[z][x].tickModules(participants, world);
+            for (Cell[] row : cells) {
+                for (Cell cell : row) {
+                    cell.tickModules(participants, world);
                 }
             }
         }
@@ -230,15 +272,9 @@ public class FortressActive {
         FortressStateManager.TickResult result = stateManager.tick(time);
         if (result != FortressStateManager.TickResult.CONTINUE_TICK) {
             switch (result) {
-                case RED_WIN:
-                    broadcastWin(FortressTeams.RED);
-                    break;
-                case BLUE_WIN:
-                    broadcastWin(FortressTeams.BLUE);
-                    break;
-                case GAME_CLOSED:
-                    gameSpace.close(GameCloseReason.FINISHED);
-                    break;
+                case RED_WIN -> broadcastWin(FortressTeams.RED);
+                case BLUE_WIN -> broadcastWin(FortressTeams.BLUE);
+                case GAME_CLOSED -> gameSpace.close(GameCloseReason.FINISHED);
             }
 
             return;
@@ -274,7 +310,7 @@ public class FortressActive {
     private void broadcastWin(GameTeam winTeam) {
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
             entry.getKey().ifOnline(this.gameSpace.getServer(), player -> {
-                if (entry.getValue().team == winTeam) {
+                if (entry.getValue().team == winTeam.key()) {
                     player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.MASTER, 1.0F, 1.0F);
                 } else {
                     player.playSound(SoundEvents.ENTITY_DONKEY_DEATH, SoundCategory.MASTER, 1.0F, 1.0F);
@@ -300,8 +336,8 @@ public class FortressActive {
             }
         }
 
-        Text title = new TranslatableText("text.fortress.wins", winTeam.getDisplay())
-                .formatted(Formatting.BOLD, winTeam.getFormatting());
+        Text title = new TranslatableText("text.fortress.wins", winTeam.config().name())
+                .formatted(Formatting.BOLD, winTeam.config().chatFormatting());
 
         Text kills = new TranslatableText("text.fortress.most_kills",
                 participants.get(mostKills).displayName,
@@ -312,7 +348,7 @@ public class FortressActive {
                 participants.get(mostCaptures).captures);
 
         PlayerSet players = gameSpace.getPlayers();
-        players.sendTitle(title, 1, 200, 3);
+        players.showTitle(title, 1, 200, 3);
         players.sendMessage(new LiteralText("------------------"));
         players.sendMessage(title);
         players.sendMessage(kills);
@@ -323,9 +359,10 @@ public class FortressActive {
     private ActionResult onPlayerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
         Text deathMessage = getDeathMessage(playerEntity, source);
         gameSpace.getPlayers().sendMessage(deathMessage);
+        getParticipant(playerEntity).deaths += 1;
 
         for (int i = 0; i < 75; i++) {
-            gameSpace.getWorld().spawnParticles(
+            world.spawnParticles(
                     ParticleTypes.FIREWORK,
                     playerEntity.getPos().getX(),
                     playerEntity.getPos().getY() + 1.0f,
@@ -335,11 +372,9 @@ public class FortressActive {
                     ((playerEntity.getRandom().nextFloat() * 2.0f) - 1.0f) * 0.35f,
                     ((playerEntity.getRandom().nextFloat() * 2.0f) - 1.0f) * 0.35f,
                     0.1);
-            ;
         }
 
-        if (source.getAttacker() != null && source.getAttacker() instanceof ServerPlayerEntity) {
-            ServerPlayerEntity attacker = (ServerPlayerEntity) source.getAttacker();
+        if (source.getAttacker() != null && source.getAttacker() instanceof ServerPlayerEntity attacker) {
             FortressPlayer participant = getParticipant(attacker);
 
             if (participant != null) {
@@ -359,26 +394,24 @@ public class FortressActive {
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {
-        if (participants.containsKey(PlayerRef.of(playerEntity))) {
-            sidebar.sidebars.get(getParticipant(playerEntity)).removePlayer(playerEntity);
-        }
+        globalSidebar.removePlayer(playerEntity);
     }
 
     private void addPlayer(ServerPlayerEntity playerEntity) {
         if (participants.containsKey(PlayerRef.of(playerEntity))) {
-            playerEntity.inventory.clear();
+            playerEntity.getInventory().clear();
 
             spawnParticipant(playerEntity);
-            sidebar.sidebars.get(getParticipant(playerEntity)).addPlayer(playerEntity);
+            globalSidebar.addPlayer(playerEntity);
             fortressKit.giveItems(playerEntity, getParticipant(playerEntity).team);
         } else {
-            if (config.midJoin) {
-                GameTeam team = getSmallestTeam();
+            if (config.midJoin()) {
+                GameTeamKey team = teams.getSmallestTeam(playerEntity.getRandom());
                 this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
                 this.teams.addPlayer(playerEntity, team);
-                sidebar.addPlayer(playerEntity, participants.get(PlayerRef.of(playerEntity)));
+                globalSidebar.addPlayer(playerEntity);
 
-                playerEntity.inventory.clear();
+                playerEntity.getInventory().clear();
                 spawnParticipant(playerEntity);
                 fortressKit.giveItems(playerEntity, getParticipant(playerEntity).team);
             } else {
@@ -387,32 +420,15 @@ public class FortressActive {
         }
     }
 
-    private GameTeam getSmallestTeam() {
-        // TODO: store a map of teams to players, this is bad
-        int redCount = 0;
-        int blueCount = 0;
-        for (FortressPlayer participant : this.participants.values()) {
-            if (participant.team == FortressTeams.RED) redCount++;
-            if (participant.team == FortressTeams.BLUE) blueCount++;
-        }
-
-        if (redCount <= blueCount) {
-            return FortressTeams.RED;
-        } else {
-            return FortressTeams.BLUE;
-        }
-    }
-
-    private ActionResult onPlaceBlock(ServerPlayerEntity playerEntity, BlockPos blockPos, BlockState blockState, ItemUsageContext itemUsageContext) {
+    private ActionResult onPlaceBlock(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockState state, ItemUsageContext context) {
         return ActionResult.PASS;
     }
 
     private void onClose() {
-        sidebar.close();
+        globalSidebar.hide();
     }
 
     private void onOpen() {
-        ServerWorld world = gameSpace.getWorld();
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
             entry.getKey().ifOnline(world, this::spawnParticipant);
             entry.getValue().displayName = entry.getKey().getEntity(world).getDisplayName();
@@ -432,21 +448,21 @@ public class FortressActive {
     }
 
     private void spawnDeadParticipant(ServerPlayerEntity player) {
-        player.setGameMode(GameMode.SPECTATOR);
+        player.changeGameMode(GameMode.SPECTATOR);
 
         FortressPlayer fortressPlayer = getParticipant(player);
         if (fortressPlayer != null) {
-            fortressPlayer.timeOfDeath = gameSpace.getWorld().getTime();
+            fortressPlayer.timeOfDeath = world.getTime();
         }
     }
 
     private void spawnParticipant(ServerPlayerEntity player) {
         FortressPlayer participant = getParticipant(player);
         assert participant != null;
-        participant.timeOfSpawn = gameSpace.getWorld().getTime();
+        participant.timeOfSpawn = world.getTime();
 
         FortressSpawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        FortressSpawnLogic.spawnPlayer(player, map.getSpawn(participant.team, player.getRandom()), gameSpace.getWorld(), participant.team == FortressTeams.RED ? 180.0f : 0.0f);
+        FortressSpawnLogic.spawnPlayer(player, map.getSpawn(participant.team, player.getRandom()), world, participant.team == FortressTeams.RED.key() ? 180.0f : 0.0f);
     }
 
     public FortressMap getMap() {

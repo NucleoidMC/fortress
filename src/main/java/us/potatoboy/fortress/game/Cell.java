@@ -7,10 +7,12 @@ import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3f;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.active.FortressPlayer;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Cell {
-    private GameTeam owner;
+    private GameTeamKey owner;
     private final BlockPos center;
     public final BlockBounds bounds;
     private List<ModuleItem> modules;
@@ -31,19 +33,17 @@ public class Cell {
         this.center = center;
         this.owner = null;
         this.modules = new ArrayList<>();
-        this.bounds = new BlockBounds(center.add(-1, 0, -1), center.add(1, 0 , 1));
+        this.bounds = BlockBounds.of(center.add(-1, 0, -1), center.add(1, 0, 1));
         this.enabled = true;
     }
 
-    public GameTeam getOwner() {
+    public GameTeamKey getOwner() {
         return owner;
     }
 
-    public void setOwner(GameTeam owner, ServerWorld world, CellManager cellManager) {
+    public void setOwner(GameTeamKey owner, ServerWorld world, CellManager cellManager) {
         this.owner = owner;
-        bounds.iterator().forEachRemaining(blockPos -> {
-            world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos));
-        });
+        bounds.iterator().forEachRemaining(blockPos -> world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos)));
     }
 
     public BlockPos getCenter() {
@@ -66,7 +66,7 @@ public class Cell {
         modules.forEach(moduleItem -> moduleItem.tick(center, participants, owner, world));
     }
 
-    public boolean incrementCapture(GameTeam team, ServerWorld world, int amount, CellManager cellManager) {
+    public boolean incrementCapture(GameTeamKey team, ServerWorld world, int amount, CellManager cellManager) {
         captureTicks += amount;
 
         Iterator<BlockPos> iterator = bounds.iterator();
@@ -111,49 +111,48 @@ public class Cell {
 
     public void setModuleColor(TeamPallet pallet, ServerWorld world) {
         BlockBounds moduleBounds = bounds.offset(0, 1, 0);
-        moduleBounds = new BlockBounds(bounds.getMin(), bounds.getMax().add(0, modules.size() * 3, 0));
+        moduleBounds = BlockBounds.of(bounds.min(), bounds.max().add(0, modules.size() * 3, 0));
 
         moduleBounds.iterator().forEachRemaining(blockPos -> {
             BlockState state = world.getBlockState(blockPos);
-            Block block = state.getBlock();
 
-            if(block.isIn(BlockTags.PLANKS)) {
-                world.setBlockState(blockPos, pallet.woodPlank.getDefaultState());
-            } else if (block.isIn(BlockTags.WOODEN_STAIRS)) {
-                world.setBlockState(blockPos, pallet.woodStair.getDefaultState()
+            if (state.isIn(BlockTags.PLANKS)) {
+                world.setBlockState(blockPos, pallet.woodPlank().getDefaultState());
+            } else if (state.isIn(BlockTags.WOODEN_STAIRS)) {
+                world.setBlockState(blockPos, pallet.woodStair().getDefaultState()
                         .with(StairsBlock.FACING, state.get(StairsBlock.FACING))
                         .with(StairsBlock.HALF, state.get(StairsBlock.HALF))
                         .with(StairsBlock.SHAPE, state.get(StairsBlock.SHAPE))
                 );
-            } else if(block.isIn(BlockTags.WOODEN_SLABS)) {
-                world.setBlockState(blockPos, pallet.woodSlab.getDefaultState()
+            } else if (state.isIn(BlockTags.WOODEN_SLABS)) {
+                world.setBlockState(blockPos, pallet.woodSlab().getDefaultState()
                         .with(SlabBlock.TYPE, state.get(SlabBlock.TYPE))
                 );
             }
 
+            Block block = state.getBlock();
+
             if (block == Blocks.RED_CONCRETE || block == Blocks.BLUE_CONCRETE) {
-                world.setBlockState(blockPos, pallet.primary.getDefaultState());
+                world.setBlockState(blockPos, pallet.primary().getDefaultState());
             }
         });
     }
 
     public void spawnParticles(ParticleEffect effect, ServerWorld world) {
-        bounds.iterator().forEachRemaining(pos -> {
-            world.spawnParticles(
-                    effect,
-                    pos.getX() + 0.5,
-                    pos.getY() + 1,
-                    pos.getZ() + 0.5,
-                    1,
-                    0.0, 0.0, 0.0,
-                    0.0
-            );
-        });
+        bounds.iterator().forEachRemaining(pos -> world.spawnParticles(
+                effect,
+                pos.getX() + 0.5,
+                pos.getY() + 1,
+                pos.getZ() + 0.5,
+                1,
+                0.0, 0.0, 0.0,
+                0.0
+        ));
     }
 
-    public void spawnTeamParticles(GameTeam team, ServerWorld world) {
-        float[] colors = team.getDye().getColorComponents();
-        DustParticleEffect effect = new DustParticleEffect(colors[0], colors[1], colors[2], 2);
+    public void spawnTeamParticles(GameTeamConfig team, ServerWorld world) {
+        float[] colors = team.blockDyeColor().getColorComponents();
+        DustParticleEffect effect = new DustParticleEffect(new Vec3f(colors[0], colors[1], colors[2]), 2);
 
         spawnParticles(effect, world);
     }

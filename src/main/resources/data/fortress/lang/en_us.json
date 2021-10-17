@@ -6,7 +6,7 @@
   "text.fortress.most_kills": "Most Kills: %s - §a%s",
   "text.fortress.most_captures": "Most Captures: %s - §a%s",
 
-  "text.fortress.book.page1": "       §l§nFORTRESS§r\n\n\n§oHow To Play:§r\n\n\n§a§l Building§r\n\n  Place §omodules§r on your teams captured cells\n\n§c§l Capturing§r\n\n  Capture adjacent cells by standing on them\n",
+  "text.fortress.book.page1": "       §l§nFORTRESS§r\n\n§oHow To Play:§r\n\n§a§l Building§r\n  Place §omodules§r on your teams captured cells\n\n§c§l Capturing§r\n  Capture adjacent cells by standing on them\n",
   "text.fortress.book.page2": "§3§l Earning§r\n  Earn modules by getting kills\n\n Earn §ospecial§r modules by capturing an entire row\n\n §6§lWinning§r\n  Control the most cells by the end of the game",
 
   "item.fortress.module_cube": "Cube Module",
@@ -16,5 +16,11 @@
   "item.fortress.module_door": "Door Module",
   "item.fortress.module_barrier": "Barrier Module",
   "item.fortress.module_launch_pad": "Launch Pad Module",
-  "item.fortress.module_heal": "Heal Module"
+  "item.fortress.module_heal": "Heal Module",
+
+  "sidebar.fortress.title": "Fortress",
+  "sidebar.fortress.time_left": "Time Left: %s",
+  "sidebar.fortress.percent.red": "Red: %s",
+  "sidebar.fortress.percent.blue": "Blue: %s",
+  "sidebar.fortress.stats": "🗡: %s ☠: %s ⚐: %s"
 }

@@ -12,23 +12,23 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.GameMode;
-import us.potatoboy.fortress.game.FortressSpawnLogic;
 import us.potatoboy.fortress.game.active.FortressPlayer;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
 import java.util.Random;
 
-public class HealModuleItem extends ModuleItem{
+public class HealModuleItem extends ModuleItem {
     public HealModuleItem(Item proxy, Identifier structure) {
         super(proxy, structure);
     }
 
     @Override
-    public void tick(BlockPos center, Object2ObjectMap<PlayerRef, FortressPlayer> participants, GameTeam owner, ServerWorld world) {
-        BlockBounds bounds = new BlockBounds(center.add(-4, 0, -4), center.add(4, 4, 4));
+    public void tick(BlockPos center, Object2ObjectMap<PlayerRef, FortressPlayer> participants, GameTeamKey owner, ServerWorld world) {
+        BlockBounds bounds = BlockBounds.of(center.add(-4, 0, -4), center.add(4, 4, 4));
 
         for (Object2ObjectMap.Entry<PlayerRef, FortressPlayer> entry : Object2ObjectMaps.fastIterable(participants)) {
             ServerPlayerEntity player = entry.getKey().getEntity(world);
@@ -42,7 +42,7 @@ public class HealModuleItem extends ModuleItem{
         }
 
         Random random = new Random();
-        DustParticleEffect effect = new DustParticleEffect(0.99f, 0.49f, 0.61f, 2);
+        DustParticleEffect effect = new DustParticleEffect(new Vec3f(0.99f, 0.49f, 0.61f), 2);
         for (int i = 0; i < 10; i++) {
 
             Vec3d pos = randomPos(random, bounds);
@@ -60,8 +60,8 @@ public class HealModuleItem extends ModuleItem{
     }
 
     public static Vec3d randomPos(Random random, BlockBounds bounds) {
-        BlockPos min = bounds.getMin();
-        BlockPos max = bounds.getMax();
+        BlockPos min = bounds.min();
+        BlockPos max = bounds.max();
 
         double x = MathHelper.nextDouble(random, min.getX(), max.getX());
         double z = MathHelper.nextDouble(random, min.getZ(), max.getZ());

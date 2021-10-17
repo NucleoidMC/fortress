@@ -2,9 +2,8 @@
   "required": true,
   "minVersion": "0.8",
   "package": "us.potatoboy.fortress.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "server": [
-    "ItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

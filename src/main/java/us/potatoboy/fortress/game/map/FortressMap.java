@@ -3,14 +3,16 @@ package us.potatoboy.fortress.game.map;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Pair;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 import us.potatoboy.fortress.game.Cell;
 import us.potatoboy.fortress.game.CellManager;
 import us.potatoboy.fortress.game.FortressTeams;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.map_templates.BlockBounds;
+import xyz.nucleoid.map_templates.MapTemplate;
+import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.game.world.generator.TemplateChunkGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,7 @@ public class FortressMap {
     public final BlockBounds bounds;
     public final List<BlockBounds> redSpawns = new ArrayList<>();
     public final List<BlockBounds> blueSpawns = new ArrayList<>();
-    public BlockBounds waitingSpawn = BlockBounds.EMPTY;
+    public BlockBounds waitingSpawn = BlockBounds.ofBlock(BlockPos.ORIGIN);
     public final CellManager cellManager;
 
     public FortressMap(MapTemplate template, CellManager cellManager) {
@@ -35,8 +37,8 @@ public class FortressMap {
         return new TemplateChunkGenerator(server, this.template);
     }
 
-    public BlockBounds getSpawn(GameTeam team, Random random) {
-        if (team == FortressTeams.RED) {
+    public BlockBounds getSpawn(GameTeamKey team, Random random) {
+        if (team == FortressTeams.RED.key()) {
             return redSpawns.get(random.nextInt(redSpawns.size()));
         } else {
             return blueSpawns.get(random.nextInt(blueSpawns.size()));
@@ -57,22 +59,22 @@ public class FortressMap {
                     continue;
                 }
 
-                if (cell.getOwner() == FortressTeams.RED) {
+                if (cell.getOwner() == FortressTeams.RED.key()) {
                     redCells++;
-                } else if (cell.getOwner() == FortressTeams.BLUE) {
+                } else if (cell.getOwner() == FortressTeams.BLUE.key()) {
                     blueCells++;
                 }
             }
         }
 
         float size = (float) Math.pow(rows.length, 2) - disabledCells;
-        int redPercent = Math.round(((float)redCells / size) * 100);
-        int bluePercent = Math.round(((float)blueCells / size) * 100);
+        int redPercent = Math.round(((float) redCells / size) * 100);
+        int bluePercent = Math.round(((float) blueCells / size) * 100);
 
         return new Pair<>(redPercent, bluePercent);
     }
 
     public void setStarterCells(GameTeam team, String region, ServerWorld world) {
-        template.getMetadata().getRegionBounds(region).forEach(bounds -> cellManager.setCellsOwner(bounds, team, world));
+        template.getMetadata().getRegionBounds(region).forEach(bounds -> cellManager.setCellsOwner(bounds, team.key(), world));
     }
 }

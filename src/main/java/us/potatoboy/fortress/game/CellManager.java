@@ -8,18 +8,19 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
+import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.GameOpenException;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.util.BlockBounds;
+import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 
 public class CellManager {
     public final Cell[][] cells;
     public final BlockBounds bounds;
 
     public CellManager(BlockBounds bounds) {
-        BlockPos max = bounds.getMax();
-        BlockPos min = bounds.getMin();
-        BlockPos size = bounds.getSize();
+        BlockPos max = bounds.max();
+        BlockPos min = bounds.min();
+        BlockPos size = bounds.size();
 
         int length = size.getX() + 1;
         int width = size.getZ() + 1;
@@ -41,21 +42,17 @@ public class CellManager {
     }
 
     public void disableCells(BlockBounds bounds) {
-        BlockPos pos = new BlockPos(bounds.getMax().getX(), bounds.getMin().getY(), bounds.getMax().getZ());
-        BlockBounds layerBounds = new BlockBounds(bounds.getMin(), pos);
+        BlockPos pos = new BlockPos(bounds.max().getX(), bounds.min().getY(), bounds.max().getZ());
+        BlockBounds layerBounds = BlockBounds.of(bounds.min(), pos);
 
-        layerBounds.iterator().forEachRemaining(blockPos -> {
-            getCell(blockPos).enabled = false;
-        });
+        layerBounds.iterator().forEachRemaining(blockPos -> getCell(blockPos).enabled = false);
     }
 
-    public void setCellsOwner(BlockBounds bounds, GameTeam team, ServerWorld world) {
-        BlockPos pos = new BlockPos(bounds.getMax().getX(), bounds.getMin().getY(), bounds.getMax().getZ());
-        BlockBounds layerBounds = new BlockBounds(bounds.getMin(), pos);
+    public void setCellsOwner(BlockBounds bounds, GameTeamKey team, ServerWorld world) {
+        BlockPos pos = new BlockPos(bounds.max().getX(), bounds.min().getY(), bounds.max().getZ());
+        BlockBounds layerBounds = BlockBounds.of(bounds.min(), pos);
 
-        layerBounds.iterator().forEachRemaining(blockPos -> {
-            getCell(blockPos).setOwner(team, world, this);
-        });
+        layerBounds.iterator().forEachRemaining(blockPos -> getCell(blockPos).setOwner(team, world, this));
     }
 
     public Cell getCell(BlockPos blockPos) {
@@ -68,13 +65,13 @@ public class CellManager {
     public Pair<Integer, Integer> getCellPos(BlockPos blockPos) {
         if (!bounds.contains(blockPos.getX(), blockPos.getZ())) return null;
 
-        BlockPos offsetPos = blockPos.subtract(bounds.getMin());
+        BlockPos offsetPos = blockPos.subtract(bounds.min());
 
         int cellX = offsetPos.getX();
         int cellZ = offsetPos.getZ();
 
-        cellX = round(cellX - 1, 3)/3;
-        cellZ = round(cellZ - 1, 3)/3;
+        cellX = round(cellX - 1, 3) / 3;
+        cellZ = round(cellZ - 1, 3) / 3;
 
         return new Pair<>(cellZ, cellX);
     }
@@ -93,19 +90,19 @@ public class CellManager {
         return Blocks.LIGHT_GRAY_STAINED_GLASS.getDefaultState();
     }
 
-    public BlockState getTeamBlock(GameTeam team, BlockPos pos) {
+    public BlockState getTeamBlock(GameTeamKey team, BlockPos pos) {
         Pair<Integer, Integer> location = getCellPos(pos);
 
         boolean primary = (location.getLeft() + location.getRight()) % 2 != 0;
 
-        TeamPallet pallet = team == FortressTeams.RED ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET;
+        TeamPallet pallet = team == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET;
 
-        ItemStack itemStack = new ItemStack(primary ? pallet.primary : pallet.secondary);
+        ItemStack itemStack = new ItemStack(primary ? pallet.primary() : pallet.secondary());
 
         return ((BlockItem) itemStack.getItem()).getBlock().getDefaultState();
     }
 
-    public boolean checkRow(int collum, GameTeam team) {
+    public boolean checkRow(int collum, GameTeamKey team) {
         for (Cell cell : cells[collum]) {
             if (cell.getOwner() != team) {
                 return false;
@@ -116,6 +113,6 @@ public class CellManager {
     }
 
     public int getFloorHeight() {
-        return bounds.getMax().getY();
+        return bounds.max().getY();
     }
 }

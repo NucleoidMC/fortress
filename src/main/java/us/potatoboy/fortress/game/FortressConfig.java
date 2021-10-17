@@ -3,9 +3,12 @@ package us.potatoboy.fortress.game;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import us.potatoboy.fortress.game.map.FortressMapConfig;
-import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
 
-public class FortressConfig {
+public record FortressConfig(
+        FortressMapConfig mapConfig, PlayerConfig playerConfig, int timeLimitMins, boolean captureEnemy, boolean recapture,
+        boolean midJoin, int captureTickDelay
+) {
     public static final Codec<FortressConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FortressMapConfig.CODEC.fieldOf("map").forGetter(config -> config.mapConfig),
             PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
@@ -15,22 +18,4 @@ public class FortressConfig {
             Codec.BOOL.optionalFieldOf("mid_join", true).forGetter(config -> config.midJoin),
             Codec.INT.optionalFieldOf("capture_tick_delay", 10).forGetter(config -> config.captureTickDelay)
     ).apply(instance, FortressConfig::new));
-
-    public final FortressMapConfig mapConfig;
-    public final PlayerConfig playerConfig;
-    public final int timeLimitMins;
-    public final boolean captureEnemy;
-    public final boolean recapture;
-    public final boolean midJoin;
-    public final int captureTickDelay;
-
-    public FortressConfig(FortressMapConfig mapConfig, PlayerConfig players, int timeLimitMins, boolean captureEnemy, boolean recapture, boolean midJoin, int captureTickDelay) {
-        this.mapConfig = mapConfig;
-        this.playerConfig = players;
-        this.timeLimitMins = timeLimitMins;
-        this.captureEnemy = captureEnemy;
-        this.recapture = recapture;
-        this.midJoin = midJoin;
-        this.captureTickDelay = captureTickDelay;
-    }
 }

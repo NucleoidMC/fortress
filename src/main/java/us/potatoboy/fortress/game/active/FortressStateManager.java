@@ -4,7 +4,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import us.potatoboy.fortress.game.FortressConfig;
 import us.potatoboy.fortress.game.FortressTeams;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.common.team.GameTeam;
 
 public class FortressStateManager {
     private final FortressActive game;
@@ -17,7 +17,7 @@ public class FortressStateManager {
     }
 
     public void onOpen(long time, FortressConfig config) {
-        finishTime = time + (config.timeLimitMins * 20 * 60);
+        finishTime = time + (config.timeLimitMins() * 20 * 60);
     }
 
     public TickResult tick(long time) {
@@ -47,7 +47,7 @@ public class FortressStateManager {
         int redPercent = percents.getLeft();
         int bluePercent = percents.getRight();
 
-        if (time >= finishTime || !game.config.recapture && redPercent + bluePercent == 100) {
+        if (time >= finishTime || !game.config.recapture() && redPercent + bluePercent == 100) {
             if (redPercent == bluePercent) {
                 return null;
             }
@@ -67,12 +67,7 @@ public class FortressStateManager {
             return FortressTeams.BLUE;
         }
 
-        GameTeam remainingTeam = getRemainingTeam();
-        if (remainingTeam != null) {
-            return remainingTeam;
-        }
-
-        return null;
+        return getRemainingTeam();
     }
 
     private GameTeam getRemainingTeam() {
@@ -82,9 +77,9 @@ public class FortressStateManager {
         for (ServerPlayerEntity player : game.gameSpace.getPlayers()) {
             FortressPlayer participant = game.getParticipant(player);
             if (participant != null) {
-                if (participant.team == FortressTeams.RED) {
+                if (participant.team == FortressTeams.RED.key()) {
                     redRemaining = true;
-                } else if (participant.team == FortressTeams.BLUE) {
+                } else if (participant.team == FortressTeams.BLUE.key()) {
                     blueRemaining = true;
                 }
             }

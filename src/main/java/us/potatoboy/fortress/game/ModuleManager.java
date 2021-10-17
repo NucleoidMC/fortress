@@ -12,11 +12,11 @@ public class ModuleManager {
 
     public ModuleManager (StructureManager structureManager) {
         for (ModuleItem moduleItem : FortressModules.MODULES) {
-            structures.put(moduleItem, structureManager.getStructure(moduleItem.structure));
+            structures.put(moduleItem, structureManager.getStructure(moduleItem.structure).get());
         }
 
         for (ModuleItem moduleItem : FortressModules.SPECIAL) {
-            structures.put(moduleItem, structureManager.getStructure(moduleItem.structure));
+            structures.put(moduleItem, structureManager.getStructure(moduleItem.structure).get());
         }
     }
 
