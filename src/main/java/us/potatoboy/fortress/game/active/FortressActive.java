@@ -190,6 +190,8 @@ public class FortressActive {
     private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
         ItemStack stack = player.getStackInHand(hand);
 
+        if (map.cellManager.getCell(hitResult.getBlockPos()) == null) return ActionResult.FAIL;
+
         if (stack.getItem() instanceof ModuleItem moduleItem) {
             BlockPos blockPos = hitResult.getBlockPos();
             Direction direction = hitResult.getSide();
