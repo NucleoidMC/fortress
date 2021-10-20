@@ -21,6 +21,7 @@ public class FortressModules {
 
     public static final ModuleItem LAUNCH_PAD = registerSpecial("module_launch_pad", new ModuleItem(Items.SLIME_BLOCK, Fortress.identifier("launcher")));
     public static final HealModuleItem HEAL = registerSpecial("module_heal", new HealModuleItem(Fortress.identifier("heal")));
+    public static final TeslaCoilModuleItem TESLA_COIL = registerSpecial("module_tesla_coil", new TeslaCoilModuleItem(Fortress.identifier("tesla_coil")));
 
     private static <T extends ModuleItem> T register(String identifier, T item) {
         MODULES.add(item);
