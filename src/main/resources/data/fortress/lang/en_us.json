@@ -17,6 +17,7 @@
   "item.fortress.module_barrier": "Barrier Module",
   "item.fortress.module_launch_pad": "Launch Pad Module",
   "item.fortress.module_heal": "Heal Module",
+  "item.fortress.module_tesla_coil": "Heal Module",
 
   "sidebar.fortress.title": "Fortress",
   "sidebar.fortress.time_left": "Time Left: %s",

@@ -66,14 +66,13 @@ public class FortressTeams {
     }
 
     public GameTeamKey getSmallestTeam(Random random) {
-        GameTeamKey smallest = null;
         int red = manager.playersIn(RED.key()).size();
         int blue = manager.playersIn(BLUE.key()).size();
 
         if (red > blue) {
-            return RED.key();
-        } else if (blue > red) {
             return BLUE.key();
+        } else if (blue > red) {
+            return RED.key();
         }
 
         return random.nextBoolean() ? RED.key() : BLUE.key();
