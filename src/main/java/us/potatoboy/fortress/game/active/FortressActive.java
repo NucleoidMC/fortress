@@ -33,7 +33,10 @@ import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.Fortress;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
-import us.potatoboy.fortress.game.*;
+import us.potatoboy.fortress.game.Cell;
+import us.potatoboy.fortress.game.FortressConfig;
+import us.potatoboy.fortress.game.FortressSpawnLogic;
+import us.potatoboy.fortress.game.FortressTeams;
 import us.potatoboy.fortress.game.map.FortressMap;
 import us.potatoboy.fortress.utility.TextUtil;
 import xyz.nucleoid.plasmid.game.GameCloseReason;
@@ -64,7 +67,6 @@ public class FortressActive {
 
     public final Object2ObjectMap<PlayerRef, FortressPlayer> participants;
 
-    final ModuleManager moduleManager;
     final CaptureManager captureManager;
     final FortressStateManager stateManager;
 
@@ -72,12 +74,11 @@ public class FortressActive {
 
     private final FortressKit fortressKit;
 
-    private FortressActive(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, GlobalWidgets widgets, Multimap<GameTeamKey, ServerPlayerEntity> players, ModuleManager moduleManager, FortressTeams teams) {
+    private FortressActive(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, GlobalWidgets widgets, Multimap<GameTeamKey, ServerPlayerEntity> players, FortressTeams teams) {
         this.gameSpace = gameSpace;
         this.world = world;
         this.config = config;
         this.map = map;
-        this.moduleManager = moduleManager;
         this.teams = teams;
         this.participants = new Object2ObjectOpenHashMap<>();
         this.captureManager = new CaptureManager(this);
@@ -139,14 +140,14 @@ public class FortressActive {
         });
     }
 
-    public static void open(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, Multimap<GameTeamKey, ServerPlayerEntity> players, ModuleManager moduleManager) {
+    public static void open(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, Multimap<GameTeamKey, ServerPlayerEntity> players) {
         gameSpace.setActivity(game -> {
             var widgets = GlobalWidgets.addTo(game);
 
             var teams = new FortressTeams(gameSpace);
             teams.applyTo(game);
 
-            FortressActive active = new FortressActive(gameSpace, world, map, config, widgets, players, moduleManager, teams);
+            FortressActive active = new FortressActive(gameSpace, world, map, config, widgets, players, teams);
 
             game.deny(GameRuleType.CRAFTING);
             game.deny(GameRuleType.PORTALS);
@@ -198,7 +199,7 @@ public class FortressActive {
             BlockPos blockPos2 = blockPos.offset(direction);
             if (world.canPlayerModifyAt(player, hitResult.getBlockPos()) && player.canPlaceOn(blockPos2, direction, stack)) {
                 Cell cell = map.cellManager.getCell(blockPos);
-                Structure structure = moduleManager.getStructure(moduleItem);
+                Structure structure = moduleItem.getStructure(gameSpace.getServer());
 
                 int placeIndex = (blockPos.getY() - map.cellManager.getFloorHeight()) / 3;
 
