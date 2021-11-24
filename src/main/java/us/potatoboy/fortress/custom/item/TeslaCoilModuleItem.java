@@ -3,11 +3,7 @@ package us.potatoboy.fortress.custom.item;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.item.Items;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -16,7 +12,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3f;
 import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.map_templates.BlockBounds;
@@ -41,8 +36,8 @@ public class TeslaCoilModuleItem extends ModuleItem {
             if (entry.getValue().team == owner) continue;
             if (!bounds.contains(player.getBlockPos().getX(), player.getBlockPos().getZ())) continue;
 
-            player.damage(DamageSource.LIGHTNING_BOLT, 0.3f);
-            world.playSoundFromEntity(null, player, SoundEvents.ENTITY_LIGHTNING_BOLT_IMPACT, SoundCategory.BLOCKS, 0.5f, 2f);
+            player.damage(DamageSource.LIGHTNING_BOLT, 1f);
+            world.playSoundFromEntity(null, player, SoundEvents.ITEM_TRIDENT_THUNDER, SoundCategory.BLOCKS, 0.5f, 2f);
         }
 
         Random random = new Random();
@@ -51,13 +46,13 @@ public class TeslaCoilModuleItem extends ModuleItem {
             Vec3d pos = HealModuleItem.randomPos(random, bounds);
 
             world.spawnParticles(
-                    ParticleTypes.ELECTRIC_SPARK,
+                    ParticleTypes.WAX_ON,
                     pos.getX() + 0.5,
                     pos.getY() + 1,
                     pos.getZ() + 0.5,
                     1,
-                    0.0, 0.0, 0.0,
-                    0.0
+                    0.1, 0.1, 0.1,
+                    15
             );
         }
     }

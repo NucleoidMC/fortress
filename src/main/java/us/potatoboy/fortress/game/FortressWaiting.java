@@ -43,22 +43,19 @@ public class FortressWaiting {
     private final FortressMap map;
     private final FortressConfig config;
     private final TeamSelectionLobby teamSelectionLobby;
-    private final ModuleManager moduleManager;
 
-    private FortressWaiting(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, TeamSelectionLobby teamSelectionLobby, ModuleManager moduleManager) {
+    private FortressWaiting(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, TeamSelectionLobby teamSelectionLobby) {
         this.gameSpace = gameSpace;
         this.world = world;
         this.map = map;
         this.config = config;
         this.teamSelectionLobby = teamSelectionLobby;
-        this.moduleManager = moduleManager;
     }
 
 
     public static GameOpenProcedure open(GameOpenContext<FortressConfig> context) {
         FortressMapGenerator generator = new FortressMapGenerator(context.config().mapConfig());
         FortressMap map = generator.create(context.server());
-        ModuleManager moduleManager = new ModuleManager(context.server().getStructureManager());
 
         RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
                 .setGenerator(map.asGenerator(context.server()))
@@ -70,7 +67,7 @@ public class FortressWaiting {
             GameTeamList teams = new GameTeamList(ImmutableList.of(FortressTeams.RED, FortressTeams.BLUE));
             TeamSelectionLobby teamSelectionLobby = TeamSelectionLobby.addTo(game, teams);
 
-            FortressWaiting waiting = new FortressWaiting(game.getGameSpace(), world, map, context.config(), teamSelectionLobby, moduleManager);
+            FortressWaiting waiting = new FortressWaiting(game.getGameSpace(), world, map, context.config(), teamSelectionLobby);
 
             map.setStarterCells(FortressTeams.BLUE, "blue_start", world);
             map.setStarterCells(FortressTeams.RED, "red_start", world);
@@ -89,7 +86,7 @@ public class FortressWaiting {
         Multimap<GameTeamKey, ServerPlayerEntity> players = HashMultimap.create();
         teamSelectionLobby.allocate(gameSpace.getPlayers(), players::put);
 
-        FortressActive.open(gameSpace, world, map, config, players, moduleManager);
+        FortressActive.open(gameSpace, world, map, config, players);
 
         return GameResult.ok();
     }

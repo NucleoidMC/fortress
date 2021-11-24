@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "#fortress:regular_modules",
+    "#fortress:special_modules"
+  ]
+}

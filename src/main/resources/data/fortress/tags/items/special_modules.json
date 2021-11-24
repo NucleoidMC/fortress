@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "fortress:module_launch_pad",
+    "fortress:module_heal",
+    "fortress:module_tesla_coil"
+  ]
+}

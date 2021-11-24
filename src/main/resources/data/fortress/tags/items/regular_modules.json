@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "fortress:module_cube",
+    "fortress:module_stairs",
+    "fortress:module_wall",
+    "fortress:module_intersection",
+    "fortress:module_door",
+    "fortress:module_barrier"
+  ]
+}
