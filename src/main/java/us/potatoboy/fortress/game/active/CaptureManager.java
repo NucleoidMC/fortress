@@ -12,6 +12,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.Fortress;
+import us.potatoboy.fortress.FortressStatistics;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.CaptureState;
@@ -27,8 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 public class CaptureManager {
-    public static final int CAPTURE_TICK_DELAY = 10;
-
     private final GameSpace gameSpace;
     private final FortressActive game;
 
@@ -194,11 +193,13 @@ public class CaptureManager {
                     gameSpace.getPlayers().sendMessage(randomModule);
 
                     game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);
+                    game.statistics.forPlayer(firstAttacker).increment(FortressStatistics.ROWS_CAPTURED, 1);
                 }
             }
 
             for (ServerPlayerEntity attacker : attackers) {
                 game.getParticipant(attacker).captures++;
+                game.statistics.forPlayer(attacker).increment(FortressStatistics.CAPTURES, 1);
             }
         } else {
             //capturing

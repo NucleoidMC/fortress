@@ -31,6 +31,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.Fortress;
+import us.potatoboy.fortress.FortressStatistics;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.*;
@@ -45,10 +46,13 @@ import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
 import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.game.stats.GameStatisticBundle;
+import xyz.nucleoid.plasmid.game.stats.StatisticKeys;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
 import xyz.nucleoid.stimuli.event.block.BlockPunchEvent;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
+import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 import xyz.nucleoid.stimuli.event.projectile.ArrowFireEvent;
 
@@ -67,6 +71,7 @@ public class FortressActive {
     final ModuleManager moduleManager;
     final CaptureManager captureManager;
     final FortressStateManager stateManager;
+    public final GameStatisticBundle statistics;
 
     protected final Sidebar globalSidebar = new Sidebar(Sidebar.Priority.MEDIUM);
 
@@ -82,11 +87,13 @@ public class FortressActive {
         this.participants = new Object2ObjectOpenHashMap<>();
         this.captureManager = new CaptureManager(this);
         this.stateManager = new FortressStateManager(this);
+        this.statistics = gameSpace.getStatistics().bundle(Fortress.ID);
 
         for (GameTeamKey team : players.keySet()) {
             for (ServerPlayerEntity playerEntity : players.get(team)) {
                 this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
                 this.teams.addPlayer(playerEntity, team);
+                this.statistics.forPlayer(playerEntity).increment(StatisticKeys.GAMES_PLAYED, 1);
             }
         }
 
@@ -172,6 +179,7 @@ public class FortressActive {
             game.listen(GamePlayerEvents.REMOVE, active::removePlayer);
 
             game.listen(PlayerDeathEvent.EVENT, active::onPlayerDeath);
+            game.listen(PlayerDamageEvent.EVENT, active::onPlayerDamage);
         });
     }
 
@@ -250,6 +258,7 @@ public class FortressActive {
                 cell.addModule(moduleItem);
                 cell.setModuleColor(cell.getOwner() == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
 
+                statistics.forPlayer(player).increment(FortressStatistics.MODULES_PLACED, 1);
                 return ActionResult.SUCCESS;
             }
 
@@ -315,14 +324,17 @@ public class FortressActive {
     }
 
     private void broadcastWin(GameTeam winTeam) {
-        for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
-            entry.getKey().ifOnline(this.gameSpace.getServer(), player -> {
-                if (entry.getValue().team == winTeam.key()) {
+        for (ServerPlayerEntity player : gameSpace.getPlayers()) {
+            if (participants.containsKey(PlayerRef.of(player))) {
+                var participant = getParticipant(player);
+                if (participant.team == winTeam.key()) {
                     player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.MASTER, 1.0F, 1.0F);
+                    this.statistics.forPlayer(player).increment(StatisticKeys.GAMES_WON, 1);
                 } else {
                     player.playSound(SoundEvents.ENTITY_DONKEY_DEATH, SoundCategory.MASTER, 1.0F, 1.0F);
+                    this.statistics.forPlayer(player).increment(StatisticKeys.GAMES_LOST, 1);
                 }
-            });
+            }
         }
 
         PlayerRef mostKills = null;
@@ -367,6 +379,7 @@ public class FortressActive {
         Text deathMessage = getDeathMessage(playerEntity, source);
         gameSpace.getPlayers().sendMessage(deathMessage);
         getParticipant(playerEntity).deaths += 1;
+        this.statistics.forPlayer(playerEntity).increment(StatisticKeys.DEATHS, 1);
 
         for (int i = 0; i < 75; i++) {
             world.spawnParticles(
@@ -387,6 +400,7 @@ public class FortressActive {
             if (participant != null) {
                 participant.giveModule(attacker, participant.team, FortressModules.getRandomModule(attacker.getRandom()), 1);
                 participant.kills += 1;
+                this.statistics.forPlayer(attacker).increment(StatisticKeys.KILLS, 1);
             }
         }
 
@@ -398,6 +412,16 @@ public class FortressActive {
         Text deathMes = source.getDeathMessage(player);
 
         return new LiteralText("☠ ").setStyle(Fortress.PREFIX_STYLE).append(deathMes.shallowCopy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xbfbfbf))));
+    }
+
+    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+        this.statistics.forPlayer(player).increment(StatisticKeys.DAMAGE_TAKEN, amount);
+
+        if (source.getAttacker() instanceof ServerPlayerEntity attacker) {
+            this.statistics.forPlayer(attacker).increment(StatisticKeys.DAMAGE_DEALT, amount);
+        }
+
+        return ActionResult.PASS;
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {
@@ -417,6 +441,7 @@ public class FortressActive {
                 this.participants.put(PlayerRef.of(playerEntity), new FortressPlayer(team));
                 this.teams.addPlayer(playerEntity, team);
                 globalSidebar.addPlayer(playerEntity);
+                this.statistics.forPlayer(playerEntity).increment(StatisticKeys.GAMES_PLAYED, 1);
 
                 playerEntity.getInventory().clear();
                 spawnParticipant(playerEntity);
