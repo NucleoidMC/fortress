@@ -23,5 +23,10 @@
   "sidebar.fortress.time_left": "Time Left: %s",
   "sidebar.fortress.percent.red": "Red: %s",
   "sidebar.fortress.percent.blue": "Blue: %s",
-  "sidebar.fortress.stats": "🗡: %s ☠: %s ⚐: %s"
+  "sidebar.fortress.stats": "🗡: %s ☠: %s ⚐: %s",
+
+  "statistic.bundle.fortress": "Fortress",
+  "statistic.fortress.captures": "Captures",
+  "statistic.fortress.rows_captured": "Rows Captured",
+  "statistic.fortress.modules_placed": "Modules Placed"
 }
