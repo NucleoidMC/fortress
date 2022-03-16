@@ -1,6 +1,6 @@
 package us.potatoboy.fortress.custom.block;
 
-import eu.pb4.polymer.block.VirtualBlock;
+import eu.pb4.polymer.api.block.PolymerBlock;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -15,9 +15,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class LaunchPadBlock extends Block implements VirtualBlock {
+public class LaunchPadBlock extends Block implements PolymerBlock {
     public LaunchPadBlock() {
-        super(FabricBlockSettings.of(Material.AIR).breakByHand(false).noCollision().dropsNothing());
+        super(FabricBlockSettings.of(Material.AIR).noCollision().dropsNothing());
 
     }
 
@@ -37,7 +37,7 @@ public class LaunchPadBlock extends Block implements VirtualBlock {
     }
 
     @Override
-    public Block getVirtualBlock() {
+    public Block getPolymerBlock(BlockState state) {
         return Blocks.SLIME_BLOCK;
     }
 }

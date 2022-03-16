@@ -3,12 +3,12 @@
   "id": "fortress",
   "version": "${version}",
   "name": "Fortress",
-  "description": "a",
+  "description": "Fortress minigame",
   "authors": [
     "Potatoboy9999"
   ],
   "contact": {
-    "repo": "a"
+    "repo": "https://github.com/NucleoidMC/fortress"
   },
   "license": "MIT",
   "environment": "*",
@@ -23,6 +23,6 @@
   "depends": {
     "fabricloader": ">=0.10.8",
     "fabric": "*",
-    "minecraft": "1.17.x"
+    "minecraft": "1.18.x"
   }
 }
