@@ -22,10 +22,10 @@ public class FortressModules {
     }
 
     public static ModuleItem getRandomModule(Random random) {
-        return (ModuleItem) Registry.ITEM.getEntryList(FortressItemTags.REGULAR_MODULES).get().getRandom(random).get();
+        return (ModuleItem) Registry.ITEM.getEntryList(FortressItemTags.REGULAR_MODULES).get().getRandom(random).get().value();
     }
 
     public static ModuleItem getRandomSpecial(Random random) {
-        return (ModuleItem) Registry.ITEM.getEntryList(FortressItemTags.SPECIAL_MODULES).get().getRandom(random).get();
+        return (ModuleItem) Registry.ITEM.getEntryList(FortressItemTags.SPECIAL_MODULES).get().getRandom(random).get().value();
     }
 }
