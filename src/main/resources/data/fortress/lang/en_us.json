@@ -1,5 +1,5 @@
 {
-  "gameType.fortress.fortress": "Fortress"
+  "gameType.fortress.fortress": "Fortress",
   
   "text.fortress.row_captured": "New Row Captured",
   "text.fortress.give_module": "%s has obtained a %s",
