@@ -22,9 +22,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.structure.Structure;
 import net.minecraft.structure.StructurePlacementData;
-import net.minecraft.text.*;
+import net.minecraft.structure.StructureTemplate;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import net.minecraft.util.*;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -111,30 +113,30 @@ public class FortressActive {
                 long minutes = secondsUntilEnd / 60;
                 long seconds = secondsUntilEnd % 60;
 
-                return TextUtil.getText("sidebar", "time_left", new LiteralText(String.format("%02d:%02d", minutes, seconds)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xd9d9d9)));
+                return TextUtil.getText("sidebar", "time_left", Text.literal(String.format("%02d:%02d", minutes, seconds)).formatted(Formatting.GREEN)).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xd9d9d9)));
             });
 
-            builder.add(LiteralText.EMPTY);
+            builder.add(Text.empty());
 
 
             builder.add(player -> {
                 Pair<Integer, Integer> percents = map.getControlPercent();
-                return TextUtil.getText("sidebar", "percent.red", new LiteralText(percents.getLeft().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.RED);
+                return TextUtil.getText("sidebar", "percent.red", Text.literal(percents.getLeft().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.RED);
             });
             builder.add(player -> {
                 Pair<Integer, Integer> percents = map.getControlPercent();
-                return TextUtil.getText("sidebar", "percent.blue", new LiteralText(percents.getRight().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.BLUE);
+                return TextUtil.getText("sidebar", "percent.blue", Text.literal(percents.getRight().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.BLUE);
             });
 
-            builder.add(LiteralText.EMPTY);
+            builder.add(Text.empty());
 
             builder.add(player -> {
                 FortressPlayer participant = participants.get(PlayerRef.of(player));
 
                 return TextUtil.getText("sidebar", "stats",
-                        new LiteralText("" + participant.kills).formatted(Formatting.GREEN),
-                        new LiteralText("" + participant.deaths).formatted(Formatting.GREEN),
-                        new LiteralText("" + participant.captures).formatted(Formatting.GREEN)
+                        Text.literal("" + participant.kills).formatted(Formatting.GREEN),
+                        Text.literal("" + participant.deaths).formatted(Formatting.GREEN),
+                        Text.literal("" + participant.captures).formatted(Formatting.GREEN)
                 ).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xd9d9d9)));
             });
         });
@@ -199,7 +201,7 @@ public class FortressActive {
             BlockPos blockPos2 = blockPos.offset(direction);
             if (world.canPlayerModifyAt(player, hitResult.getBlockPos()) && player.canPlaceOn(blockPos2, direction, stack)) {
                 Cell cell = map.cellManager.getCell(blockPos);
-                Structure structure = moduleItem.getStructure(gameSpace.getServer());
+                StructureTemplate structure = moduleItem.getStructure(gameSpace.getServer());
 
                 int placeIndex = (blockPos.getY() - map.cellManager.getFloorHeight()) / 3;
 
@@ -303,7 +305,7 @@ public class FortressActive {
                     int sec = respawnDelay - (int) Math.floor((time - state.timeOfDeath) / 20.0F);
 
                     if (sec > 0 && (time - state.timeOfDeath) % 20 == 0) {
-                        Text text = new TranslatableText("text.fortress.respawning", sec).formatted(Formatting.BOLD);
+                        Text text = Text.translatable("text.fortress.respawning", sec).formatted(Formatting.BOLD);
                         player.sendMessage(text, true);
                     }
 
@@ -344,24 +346,24 @@ public class FortressActive {
             }
         }
 
-        Text title = new TranslatableText("text.fortress.wins", winTeam.config().name())
+        Text title = Text.translatable("text.fortress.wins", winTeam.config().name())
                 .formatted(Formatting.BOLD, winTeam.config().chatFormatting());
 
-        Text kills = new TranslatableText("text.fortress.most_kills",
+        Text kills = Text.translatable("text.fortress.most_kills",
                 participants.get(mostKills).displayName,
                 participants.get(mostKills).kills);
 
-        Text captures = new TranslatableText("text.fortress.most_captures",
+        Text captures = Text.translatable("text.fortress.most_captures",
                 participants.get(mostCaptures).displayName,
                 participants.get(mostCaptures).captures);
 
         PlayerSet players = gameSpace.getPlayers();
         players.showTitle(title, 1, 200, 3);
-        players.sendMessage(new LiteralText("------------------"));
+        players.sendMessage(Text.literal("------------------"));
         players.sendMessage(title);
         players.sendMessage(kills);
         players.sendMessage(captures);
-        players.sendMessage(new LiteralText("------------------"));
+        players.sendMessage(Text.literal("------------------"));
     }
 
     private ActionResult onPlayerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
@@ -398,7 +400,7 @@ public class FortressActive {
     private Text getDeathMessage(ServerPlayerEntity player, DamageSource source) {
         Text deathMes = source.getDeathMessage(player);
 
-        return new LiteralText("☠ ").setStyle(Fortress.PREFIX_STYLE).append(deathMes.shallowCopy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xbfbfbf))));
+        return Text.literal("☠ ").setStyle(Fortress.PREFIX_STYLE).append(deathMes.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xbfbfbf))));
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {

@@ -5,7 +5,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.map_templates.BlockBounds;
@@ -26,7 +26,7 @@ public class CellManager {
         int width = size.getZ() + 1;
 
         if (length % 3 != 0 || width % 3 != 0) {
-            throw new GameOpenException(new LiteralText("Map cells not divisible by 3"));
+            throw new GameOpenException(Text.literal("Map cells not divisible by 3"));
         }
 
         cells = new Cell[length / 3][width / 3];

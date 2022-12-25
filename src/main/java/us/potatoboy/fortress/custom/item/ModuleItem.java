@@ -1,13 +1,13 @@
 package us.potatoboy.fortress.custom.item;
 
-import eu.pb4.polymer.api.item.PolymerItem;
+import eu.pb4.polymer.core.api.item.PolymerItem;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.structure.Structure;
+import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +33,7 @@ public class ModuleItem extends Item implements PolymerItem {
         return proxy;
     }
 
-    public Structure getStructure(MinecraftServer server) {
-        return server.getStructureManager().getStructure(structureId).orElseThrow();
+    public StructureTemplate getStructure(MinecraftServer server) {
+        return server.getStructureTemplateManager().getTemplate(structureId).orElseThrow();
     }
 }

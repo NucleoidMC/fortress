@@ -13,7 +13,6 @@ import net.minecraft.network.packet.s2c.play.OpenWrittenBookS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
@@ -125,8 +124,8 @@ public class FortressWaiting {
 
         NbtList pages = new NbtList();
 
-        pages.add(NbtString.of(Text.Serializer.toJson(new TranslatableText("text.fortress.book.page1"))));
-        pages.add(NbtString.of(Text.Serializer.toJson(new TranslatableText("text.fortress.book.page2"))));
+        pages.add(NbtString.of(Text.Serializer.toJson(Text.translatable("text.fortress.book.page1"))));
+        pages.add(NbtString.of(Text.Serializer.toJson(Text.translatable("text.fortress.book.page2"))));
 
         book.getOrCreateNbt().put("pages", pages);
         book.getOrCreateNbt().putString("title", "How To Play");

@@ -1,7 +1,7 @@
 package us.potatoboy.fortress.game.map;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.world.biome.BiomeKeys;
 import us.potatoboy.fortress.game.CellManager;
 import xyz.nucleoid.map_templates.BlockBounds;
@@ -10,7 +10,6 @@ import xyz.nucleoid.map_templates.MapTemplateSerializer;
 import xyz.nucleoid.plasmid.game.GameOpenException;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 public record FortressMapGenerator(FortressMapConfig config) {
 
@@ -26,19 +25,19 @@ public record FortressMapGenerator(FortressMapConfig config) {
 
             template.getMetadata().getRegionBounds("disabled").forEach(cellManager::disableCells);
 
-            map.redSpawns.addAll(template.getMetadata().getRegionBounds("red_spawn").collect(Collectors.toList()));
-            map.blueSpawns.addAll(template.getMetadata().getRegionBounds("blue_spawn").collect(Collectors.toList()));
+            map.redSpawns.addAll(template.getMetadata().getRegionBounds("red_spawn").toList());
+            map.blueSpawns.addAll(template.getMetadata().getRegionBounds("blue_spawn").toList());
 
             return map;
         } catch (IOException e) {
-            throw new GameOpenException(new LiteralText("Failed to load map"));
+            throw new GameOpenException(Text.literal("Failed to load map"));
         }
     }
 
     private static BlockBounds getRegion(MapTemplate template, String name) {
         BlockBounds bounds = template.getMetadata().getFirstRegionBounds(name);
         if (bounds == null) {
-            throw new GameOpenException(new LiteralText(String.format("%s region not found", name)));
+            throw new GameOpenException(Text.literal(String.format("%s region not found", name)));
         }
 
         return bounds;

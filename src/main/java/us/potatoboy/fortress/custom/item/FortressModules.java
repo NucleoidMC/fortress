@@ -1,10 +1,11 @@
 package us.potatoboy.fortress.custom.item;
 
 import net.minecraft.item.Items;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.util.math.random.Random;
 import us.potatoboy.fortress.Fortress;
 
-import java.util.Random;
 
 public class FortressModules {
     public static final ModuleItem CUBE = register("module_cube", new ModuleItem(Items.OAK_PLANKS, Fortress.identifier("cube")));
@@ -18,14 +19,14 @@ public class FortressModules {
     public static final TeslaCoilModuleItem TESLA_COIL = register("module_tesla_coil", new TeslaCoilModuleItem(Fortress.identifier("tesla_coil")));
 
     private static <T extends ModuleItem> T register(String identifier, T item) {
-        return Registry.register(Registry.ITEM, Fortress.identifier(identifier), item);
+        return Registry.register(Registries.ITEM, Fortress.identifier(identifier), item);
     }
 
     public static ModuleItem getRandomModule(Random random) {
-        return (ModuleItem) Registry.ITEM.getEntryList(FortressItemTags.REGULAR_MODULES).get().getRandom(random).get().value();
+        return (ModuleItem) Registries.ITEM.getEntryList(FortressItemTags.REGULAR_MODULES).get().getRandom(random).get().value();
     }
 
     public static ModuleItem getRandomSpecial(Random random) {
-        return (ModuleItem) Registry.ITEM.getEntryList(FortressItemTags.SPECIAL_MODULES).get().getRandom(random).get().value();
+        return (ModuleItem) Registries.ITEM.getEntryList(FortressItemTags.SPECIAL_MODULES).get().getRandom(random).get().value();
     }
 }

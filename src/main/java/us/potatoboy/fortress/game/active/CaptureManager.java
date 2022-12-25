@@ -6,9 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Pair;
 import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.Fortress;
@@ -181,13 +179,13 @@ public class CaptureManager {
                     ModuleItem moduleItem = FortressModules.getRandomSpecial(firstAttacker.getRandom());
                     ItemStack stack = new ItemStack(moduleItem);
 
-                    Text rowCaptured = new LiteralText("⛏ ")
+                    Text rowCaptured = Text.literal("⛏ ")
                             .setStyle(Fortress.PREFIX_STYLE)
-                            .append(new TranslatableText("text.fortress.row_captured").formatted(teamConfig.chatFormatting()));
+                            .append(Text.translatable("text.fortress.row_captured").formatted(teamConfig.chatFormatting()));
 
-                    Text randomModule = new LiteralText("⚅ ")
+                    Text randomModule = Text.literal("⚅ ")
                             .setStyle(Fortress.PREFIX_STYLE)
-                            .append(new TranslatableText("text.fortress.give_module", firstAttacker.getDisplayName(), stack.toHoverableText())
+                            .append(Text.translatable("text.fortress.give_module", firstAttacker.getDisplayName(), stack.toHoverableText())
                                     .formatted(teamConfig.chatFormatting()));
 
                     gameSpace.getPlayers().sendMessage(rowCaptured);

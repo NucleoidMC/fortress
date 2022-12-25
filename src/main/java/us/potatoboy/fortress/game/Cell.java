@@ -4,10 +4,10 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import net.minecraft.block.*;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.particle.ParticleEffect;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3f;
+import org.joml.Vector3f;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.map_templates.BlockBounds;
@@ -23,7 +23,7 @@ public class Cell {
     private GameTeamKey owner;
     private final BlockPos center;
     public final BlockBounds bounds;
-    private List<ModuleItem> modules;
+    private final List<ModuleItem> modules;
     public boolean enabled;
 
     public CaptureState captureState;
@@ -110,9 +110,8 @@ public class Cell {
     }
 
     public void setModuleColor(TeamPallet pallet, ServerWorld world) {
-        BlockBounds moduleBounds = bounds.offset(0, 1, 0);
-        moduleBounds = BlockBounds.of(bounds.min(), bounds.max().add(0, modules.size() * 3, 0));
-
+        BlockBounds moduleBounds = BlockBounds.of(bounds.min(), bounds.max().add(0, modules.size() * 3, 0));
+        
         moduleBounds.iterator().forEachRemaining(blockPos -> {
             BlockState state = world.getBlockState(blockPos);
 
@@ -152,7 +151,7 @@ public class Cell {
 
     public void spawnTeamParticles(GameTeamConfig team, ServerWorld world) {
         float[] colors = team.blockDyeColor().getColorComponents();
-        DustParticleEffect effect = new DustParticleEffect(new Vec3f(colors[0], colors[1], colors[2]), 2);
+        DustParticleEffect effect = new DustParticleEffect(new Vector3f(colors[0], colors[1], colors[2]), 2);
 
         spawnParticles(effect, world);
     }

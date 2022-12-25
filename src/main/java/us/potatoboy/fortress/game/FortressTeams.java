@@ -3,8 +3,9 @@ package us.potatoboy.fortress.game;
 import net.minecraft.block.Blocks;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.DyeColor;
+import net.minecraft.util.math.random.Random;
 import xyz.nucleoid.plasmid.game.GameActivity;
 import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.common.team.GameTeam;
@@ -12,18 +13,16 @@ import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
 import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.game.common.team.TeamManager;
 
-import java.util.Random;
-
 public class FortressTeams {
     public static final GameTeam RED = new GameTeam(new GameTeamKey("red"), GameTeamConfig.builder()
-            .setName(new TranslatableText("color.minecraft.red"))
+            .setName(Text.translatable("color.minecraft.red"))
             .setColors(GameTeamConfig.Colors.from(DyeColor.RED))
             .setFriendlyFire(false)
             .setCollision(AbstractTeam.CollisionRule.NEVER)
             .build()
     );
     public static final GameTeam BLUE = new GameTeam(new GameTeamKey("blue"), GameTeamConfig.builder()
-            .setName(new TranslatableText("color.minecraft.blue"))
+            .setName(Text.translatable("color.minecraft.blue"))
             .setColors(GameTeamConfig.Colors.from(DyeColor.BLUE))
             .setFriendlyFire(false)
             .setCollision(AbstractTeam.CollisionRule.NEVER)

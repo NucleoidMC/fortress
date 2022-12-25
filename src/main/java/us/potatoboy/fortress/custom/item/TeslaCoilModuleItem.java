@@ -18,8 +18,6 @@ import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
 import xyz.nucleoid.plasmid.util.PlayerRef;
 
-import java.util.Random;
-
 public class TeslaCoilModuleItem extends ModuleItem {
     public TeslaCoilModuleItem(Identifier structure) {
         super(Items.LIGHTNING_ROD, structure);
@@ -40,7 +38,7 @@ public class TeslaCoilModuleItem extends ModuleItem {
             world.playSoundFromEntity(null, player, SoundEvents.ITEM_TRIDENT_THUNDER, SoundCategory.BLOCKS, 0.5f, 2f);
         }
 
-        Random random = new Random();
+        var random = world.random;
         for (int i = 0; i < 10; i++) {
 
             Vec3d pos = HealModuleItem.randomPos(random, bounds);
