@@ -2,7 +2,6 @@ package us.potatoboy.fortress.custom.item;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -34,7 +33,7 @@ public class TeslaCoilModuleItem extends ModuleItem {
             if (entry.getValue().team == owner) continue;
             if (!bounds.contains(player.getBlockPos().getX(), player.getBlockPos().getZ())) continue;
 
-            player.damage(DamageSource.LIGHTNING_BOLT, 1f);
+            player.damage(player.getDamageSources().lightningBolt(), 1f);
             world.playSoundFromEntity(null, player, SoundEvents.ITEM_TRIDENT_THUNDER, SoundCategory.BLOCKS, 0.5f, 2f);
         }
 
