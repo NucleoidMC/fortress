@@ -5,7 +5,6 @@ import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.Material;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,7 +16,7 @@ import net.minecraft.world.World;
 
 public class LaunchPadBlock extends Block implements PolymerBlock {
     public LaunchPadBlock() {
-        super(FabricBlockSettings.of(Material.AIR).noCollision().dropsNothing());
+        super(FabricBlockSettings.create().noCollision().dropsNothing());
 
     }
 
