@@ -6,6 +6,7 @@ import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Hand;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.FortressTeams;
@@ -22,6 +23,8 @@ public class FortressKit {
     private final LinkedHashMap<ModuleItem, Integer> starterModules = new LinkedHashMap<>();
     private final LinkedHashMap<Item, Integer> starterItems = new LinkedHashMap<>();
 
+    private final Item offHandItem = Items.SHIELD;
+
     private ServerWorld world;
     private FortressTeams teams;
 
@@ -31,7 +34,6 @@ public class FortressKit {
 
         starterItems.put(Items.STONE_SWORD, 1);
         starterItems.put(Items.WOODEN_AXE, 1);
-        starterItems.put(Items.SHIELD, 1);
         starterItems.put(Items.BOW, 1);
         starterItems.put(Items.ARROW, 1);
 
@@ -85,23 +87,10 @@ public class FortressKit {
 
     public void giveItems(ServerPlayerEntity playerEntity, GameTeamKey team) {
         for (Map.Entry<Item, Integer> entry : starterItems.entrySet()) {
-            ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
-
-            if (entry.getKey() instanceof ShieldItem) {
-                var tag = new NbtCompound();
-                tag.putInt("Base", team == FortressTeams.RED.key() ? 14 : 11);
-                itemStack.setSubNbt("BlockEntityTag", tag);
-            }
-
-            if (entry.getKey() instanceof BowItem) {
-                itemStack.addEnchantment(Enchantments.INFINITY, 1);
-            }
-
-            itemStack.getOrCreateNbt().putBoolean("Unbreakable", true);
-            itemStack.getOrCreateNbt().putInt("HideFlags", 63);
-
-            playerEntity.getInventory().insertStack(itemStack);
+            playerEntity.getInventory().insertStack(createStarterItemStack(entry.getKey(), entry.getValue(), team));
         }
+
+        playerEntity.setStackInHand(Hand.OFF_HAND, createStarterItemStack(offHandItem, 1, team));
 
         giveArmor(playerEntity, team);
     }
@@ -124,5 +113,24 @@ public class FortressKit {
                 });
             }
         }
+    }
+
+    private static ItemStack createStarterItemStack(Item item, int count, GameTeamKey team) {
+        ItemStack itemStack = new ItemStack(item, count);
+
+        if (item instanceof ShieldItem) {
+            var tag = new NbtCompound();
+            tag.putInt("Base", team == FortressTeams.RED.key() ? 14 : 11);
+            itemStack.setSubNbt("BlockEntityTag", tag);
+        }
+
+        if (item instanceof BowItem) {
+            itemStack.addEnchantment(Enchantments.INFINITY, 1);
+        }
+
+        itemStack.getOrCreateNbt().putBoolean("Unbreakable", true);
+        itemStack.getOrCreateNbt().putInt("HideFlags", 63);
+
+        return itemStack;
     }
 }
