@@ -17,10 +17,10 @@ import us.potatoboy.fortress.game.CaptureState;
 import us.potatoboy.fortress.game.Cell;
 import us.potatoboy.fortress.game.CellManager;
 import us.potatoboy.fortress.game.FortressTeams;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
 
 import java.util.HashMap;
 import java.util.HashSet;

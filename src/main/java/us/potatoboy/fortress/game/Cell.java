@@ -7,13 +7,12 @@ import net.minecraft.particle.ParticleEffect;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import org.joml.Vector3f;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.map_templates.BlockBounds;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamConfig;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamConfig;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -150,8 +149,8 @@ public class Cell {
     }
 
     public void spawnTeamParticles(GameTeamConfig team, ServerWorld world) {
-        float[] colors = team.blockDyeColor().getColorComponents();
-        DustParticleEffect effect = new DustParticleEffect(new Vector3f(colors[0], colors[1], colors[2]), 2);
+        int color = team.blockDyeColor().getFireworkColor();
+        DustParticleEffect effect = new DustParticleEffect(color, 2);
 
         spawnParticles(effect, world);
     }

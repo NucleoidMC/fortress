@@ -9,7 +9,11 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.map_templates.BlockBounds;
 
+import java.util.Set;
+
 public class FortressSpawnLogic {
+    private static final Random random = Random.createLocal();
+
     public static void resetPlayer(ServerPlayerEntity player, GameMode gameMode) {
         player.changeGameMode(gameMode);
         player.setVelocity(Vec3d.ZERO);
@@ -19,7 +23,7 @@ public class FortressSpawnLogic {
         player.setFireTicks(0);
     }
 
-    public static Vec3d choosePos(Random random, BlockBounds bounds, float aboveGround) {
+    public static Vec3d choosePos(BlockBounds bounds, float aboveGround) {
         BlockPos min = bounds.min();
         BlockPos max = bounds.max();
 
@@ -31,7 +35,7 @@ public class FortressSpawnLogic {
     }
 
     public static void spawnPlayer(ServerPlayerEntity player, BlockBounds bounds, ServerWorld world, float yaw) {
-        Vec3d pos = choosePos(player.getRandom(), bounds, 0.5F);
-        player.teleport(world, pos.x, pos.y, pos.z, yaw, 0.0F);
+        Vec3d pos = choosePos(bounds, 0.5F);
+        player.teleport(world, pos.x, pos.y, pos.z, Set.of(), 0, 0, false);
     }
 }

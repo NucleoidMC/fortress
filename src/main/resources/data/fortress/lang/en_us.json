@@ -5,8 +5,8 @@
   "text.fortress.give_module": "%s has obtained a %s",
   "text.fortress.respawning": "Respawning in %ds",
   "text.fortress.wins": "%s Wins!",
-  "text.fortress.most_kills": "Most Kills: %s - §a%s",
-  "text.fortress.most_captures": "Most Captures: %s - §a%s",
+  "text.fortress.most_kills": "Most Kills: %s - %s",
+  "text.fortress.most_captures": "Most Captures: %s - %s",
 
   "text.fortress.book.page1": "       §l§nFORTRESS§r\n\n§oHow To Play:§r\n\n§a§l Building§r\n  Place §omodules§r on your teams captured cells\n\n§c§l Capturing§r\n  Capture adjacent cells by standing on them\n",
   "text.fortress.book.page2": "§3§l Earning§r\n  Earn modules by getting kills\n\n Earn §ospecial§r modules by capturing an entire row\n\n §6§lWinning§r\n  Control the most cells by the end of the game",

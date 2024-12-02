@@ -1,17 +1,18 @@
 package us.potatoboy.fortress.game;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import us.potatoboy.fortress.game.map.FortressMapConfig;
-import xyz.nucleoid.plasmid.game.common.config.PlayerConfig;
+import xyz.nucleoid.plasmid.api.game.common.config.WaitingLobbyConfig;
 
 public record FortressConfig(
-        FortressMapConfig mapConfig, PlayerConfig playerConfig, int timeLimitMins, boolean captureEnemy, boolean recapture,
+        FortressMapConfig mapConfig, WaitingLobbyConfig playerConfig, int timeLimitMins, boolean captureEnemy, boolean recapture,
         boolean midJoin, int captureTickDelay
 ) {
-    public static final Codec<FortressConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+    public static final MapCodec<FortressConfig> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             FortressMapConfig.CODEC.fieldOf("map").forGetter(config -> config.mapConfig),
-            PlayerConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
+            WaitingLobbyConfig.CODEC.fieldOf("players").forGetter(config -> config.playerConfig),
             Codec.INT.fieldOf("time_limit_mins").forGetter(config -> config.timeLimitMins),
             Codec.BOOL.fieldOf("capture_enemy").forGetter(config -> config.captureEnemy),
             Codec.BOOL.optionalFieldOf("recapture", true).forGetter(config -> config.recapture),

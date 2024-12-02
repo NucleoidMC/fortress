@@ -9,7 +9,7 @@ import us.potatoboy.fortress.custom.block.FortressBlocks;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.game.FortressConfig;
 import us.potatoboy.fortress.game.FortressWaiting;
-import xyz.nucleoid.plasmid.game.GameType;
+import xyz.nucleoid.plasmid.api.game.GameType;
 
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -33,6 +33,6 @@ public class Fortress implements ModInitializer {
     }
 
     public static Identifier identifier(String value) {
-        return new Identifier(ID, value);
+        return Identifier.of(ID, value);
     }
 }

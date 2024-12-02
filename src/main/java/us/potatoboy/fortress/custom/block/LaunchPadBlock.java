@@ -1,7 +1,7 @@
 package us.potatoboy.fortress.custom.block;
 
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -13,10 +13,11 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import xyz.nucleoid.packettweaker.PacketContext;
 
 public class LaunchPadBlock extends Block implements PolymerBlock {
-    public LaunchPadBlock() {
-        super(FabricBlockSettings.create().noCollision().dropsNothing());
+    public LaunchPadBlock(AbstractBlock.Settings settings) {
+        super(settings);
 
     }
 
@@ -30,13 +31,13 @@ public class LaunchPadBlock extends Block implements PolymerBlock {
             entity.setVelocity(velocity);
             if (entity instanceof ServerPlayerEntity player) {
                 player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(entity));
-                player.playSound(SoundEvents.BLOCK_SLIME_BLOCK_PLACE, SoundCategory.BLOCKS, 0.5f, 1);
+                player.playSoundToPlayer(SoundEvents.BLOCK_SLIME_BLOCK_PLACE, SoundCategory.BLOCKS, 0.5f, 1);
             }
         }
     }
 
     @Override
-    public Block getPolymerBlock(BlockState state) {
-        return Blocks.SLIME_BLOCK;
+    public BlockState getPolymerBlockState(BlockState blockState, PacketContext packetContext) {
+        return Blocks.SLIME_BLOCK.getDefaultState();
     }
 }

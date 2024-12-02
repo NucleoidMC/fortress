@@ -42,18 +42,19 @@ import us.potatoboy.fortress.game.FortressSpawnLogic;
 import us.potatoboy.fortress.game.FortressTeams;
 import us.potatoboy.fortress.game.map.FortressMap;
 import us.potatoboy.fortress.utility.TextUtil;
-import xyz.nucleoid.plasmid.game.GameCloseReason;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
-import xyz.nucleoid.plasmid.game.common.team.GameTeam;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
-import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
-import xyz.nucleoid.plasmid.game.player.PlayerSet;
-import xyz.nucleoid.plasmid.game.rule.GameRuleType;
-import xyz.nucleoid.plasmid.game.stats.GameStatisticBundle;
-import xyz.nucleoid.plasmid.game.stats.StatisticKeys;
-import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.plasmid.api.game.GameCloseReason;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.player.PlayerSet;
+import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.game.stats.GameStatisticBundle;
+import xyz.nucleoid.plasmid.api.game.stats.StatisticKeys;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
+import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.block.BlockPlaceEvent;
 import xyz.nucleoid.stimuli.event.block.BlockPunchEvent;
 import xyz.nucleoid.stimuli.event.block.BlockUseEvent;
@@ -177,7 +178,7 @@ public class FortressActive {
 
             game.listen(GameActivityEvents.TICK, active::tick);
 
-            game.listen(GamePlayerEvents.OFFER, offer -> offer.accept(world, FortressSpawnLogic.choosePos(offer.player().getRandom(), map.waitingSpawn, 0f)));
+            game.listen(GamePlayerEvents.ACCEPT, offer -> offer.teleport(world, FortressSpawnLogic.choosePos(map.waitingSpawn, 0f)));
             game.listen(GamePlayerEvents.ADD, active::addPlayer);
             game.listen(GamePlayerEvents.REMOVE, active::removePlayer);
 
@@ -186,16 +187,16 @@ public class FortressActive {
         });
     }
 
-    private ActionResult onAttackBlock(ServerPlayerEntity playerEntity, Direction direction, BlockPos blockPos) {
-        return ActionResult.FAIL;
+    private EventResult onAttackBlock(ServerPlayerEntity playerEntity, Direction direction, BlockPos blockPos) {
+        return EventResult.DENY;
     }
 
-    private ActionResult onFireArrow(ServerPlayerEntity player, ItemStack itemStack, ArrowItem arrowItem, int i, PersistentProjectileEntity persistentProjectileEntity) {
+    private EventResult onFireArrow(ServerPlayerEntity player, ItemStack itemStack, ArrowItem arrowItem, int i, PersistentProjectileEntity persistentProjectileEntity) {
         ItemCooldownManager cooldown = player.getItemCooldownManager();
-        if (!cooldown.isCoolingDown(itemStack.getItem())) {
-            cooldown.set(itemStack.getItem(), 60);
+        if (!cooldown.isCoolingDown(itemStack)) {
+            cooldown.set(itemStack, 60);
         }
-        return ActionResult.PASS;
+        return EventResult.PASS;
     }
 
     private ActionResult onUseBlock(ServerPlayerEntity player, Hand hand, BlockHitResult hitResult) {
@@ -331,10 +332,10 @@ public class FortressActive {
             if (participants.containsKey(PlayerRef.of(player))) {
                 var participant = getParticipant(player);
                 if (participant.team == winTeam.key()) {
-                    player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.MASTER, 1.0F, 1.0F);
+                    player.playSoundToPlayer(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundCategory.MASTER, 1.0F, 1.0F);
                     this.statistics.forPlayer(player).increment(StatisticKeys.GAMES_WON, 1);
                 } else {
-                    player.playSound(SoundEvents.ENTITY_DONKEY_DEATH, SoundCategory.MASTER, 1.0F, 1.0F);
+                    player.playSoundToPlayer(SoundEvents.ENTITY_DONKEY_DEATH, SoundCategory.MASTER, 1.0F, 1.0F);
                     this.statistics.forPlayer(player).increment(StatisticKeys.GAMES_LOST, 1);
                 }
             }
@@ -363,11 +364,11 @@ public class FortressActive {
 
         Text kills = Text.translatable("text.fortress.most_kills",
                 participants.get(mostKills).displayName,
-                participants.get(mostKills).kills);
+                Text.literal(String.valueOf(participants.get(mostKills).kills))).formatted(Formatting.GREEN);
 
         Text captures = Text.translatable("text.fortress.most_captures",
                 participants.get(mostCaptures).displayName,
-                participants.get(mostCaptures).captures);
+                Text.literal(String.valueOf(participants.get(mostCaptures).captures))).formatted(Formatting.GREEN);
 
         PlayerSet players = gameSpace.getPlayers();
         players.showTitle(title, 1, 200, 3);
@@ -378,7 +379,7 @@ public class FortressActive {
         players.sendMessage(Text.literal("------------------"));
     }
 
-    private ActionResult onPlayerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
+    private EventResult onPlayerDeath(ServerPlayerEntity playerEntity, DamageSource source) {
         Text deathMessage = getDeathMessage(playerEntity, source);
         gameSpace.getPlayers().sendMessage(deathMessage);
         getParticipant(playerEntity).deaths += 1;
@@ -408,7 +409,7 @@ public class FortressActive {
         }
 
         spawnDeadParticipant(playerEntity);
-        return ActionResult.FAIL;
+        return EventResult.DENY;
     }
 
     private Text getDeathMessage(ServerPlayerEntity player, DamageSource source) {
@@ -417,14 +418,14 @@ public class FortressActive {
         return Text.literal("☠ ").setStyle(Fortress.PREFIX_STYLE).append(deathMes.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xbfbfbf))));
     }
 
-    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+    private EventResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         this.statistics.forPlayer(player).increment(StatisticKeys.DAMAGE_TAKEN, amount);
 
         if (source.getAttacker() instanceof ServerPlayerEntity attacker) {
             this.statistics.forPlayer(attacker).increment(StatisticKeys.DAMAGE_DEALT, amount);
         }
 
-        return ActionResult.PASS;
+        return EventResult.PASS;
     }
 
     private void removePlayer(ServerPlayerEntity playerEntity) {
@@ -455,8 +456,8 @@ public class FortressActive {
         }
     }
 
-    private ActionResult onPlaceBlock(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockState state, ItemUsageContext context) {
-        return ActionResult.PASS;
+    private EventResult onPlaceBlock(ServerPlayerEntity player, ServerWorld world, BlockPos pos, BlockState state, ItemUsageContext context) {
+        return EventResult.PASS;
     }
 
     private void onClose() {

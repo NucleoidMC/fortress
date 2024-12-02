@@ -2,11 +2,11 @@ package us.potatoboy.fortress.custom.item;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -14,12 +14,12 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.map_templates.BlockBounds;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
 
 public class TeslaCoilModuleItem extends ModuleItem {
-    public TeslaCoilModuleItem(Identifier structure) {
-        super(Items.LIGHTNING_ROD, structure);
+    public TeslaCoilModuleItem(Item.Settings settings, Identifier structure) {
+        super(settings, Items.LIGHTNING_ROD, structure);
     }
 
     @Override
@@ -33,8 +33,8 @@ public class TeslaCoilModuleItem extends ModuleItem {
             if (entry.getValue().team == owner) continue;
             if (!bounds.contains(player.getBlockPos().getX(), player.getBlockPos().getZ())) continue;
 
-            player.damage(player.getDamageSources().lightningBolt(), 1f);
-            world.playSoundFromEntity(null, player, SoundEvents.ITEM_TRIDENT_THUNDER, SoundCategory.BLOCKS, 0.5f, 2f);
+            player.damage(world, player.getDamageSources().lightningBolt(), 1f);
+            player.playSound(SoundEvents.ITEM_TRIDENT_THUNDER.value(), 0.5f, 2f);
         }
 
         var random = world.random;

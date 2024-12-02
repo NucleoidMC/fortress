@@ -6,7 +6,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Util;
 import us.potatoboy.fortress.Fortress;
-import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
 
 public class TextUtil {
     public static MutableText getText(String type, String path, Object... values) {

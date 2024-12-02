@@ -4,7 +4,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Pair;
 import us.potatoboy.fortress.game.FortressConfig;
 import us.potatoboy.fortress.game.FortressTeams;
-import xyz.nucleoid.plasmid.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
 
 public class FortressStateManager {
     private final FortressActive game;
@@ -17,7 +17,7 @@ public class FortressStateManager {
     }
 
     public void onOpen(long time, FortressConfig config) {
-        finishTime = time + (config.timeLimitMins() * 20 * 60);
+        finishTime = time + (config.timeLimitMins() * 20L * 60L);
     }
 
     public TickResult tick(long time) {

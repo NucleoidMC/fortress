@@ -5,22 +5,22 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureTemplate;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import us.potatoboy.fortress.game.active.FortressPlayer;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.util.PlayerRef;
+import xyz.nucleoid.packettweaker.PacketContext;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
 
 public class ModuleItem extends Item implements PolymerItem {
     private final Item proxy;
     public final Identifier structureId;
 
-    public ModuleItem(Item proxy, Identifier structure) {
-        super(new Item.Settings());
+    public ModuleItem(Item.Settings settings, Item proxy, Identifier structure) {
+        super(settings);
         this.proxy = proxy;
         this.structureId = structure;
     }
@@ -29,8 +29,12 @@ public class ModuleItem extends Item implements PolymerItem {
     }
 
     @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return proxy;
+    }
+
+    public @Nullable Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return null;
     }
 
     public StructureTemplate getStructure(MinecraftServer server) {
