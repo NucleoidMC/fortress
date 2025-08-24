@@ -4,6 +4,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -159,7 +161,7 @@ public class CaptureManager {
         if (cell.incrementCapture(captureTeam, world, attackers.size(), game.getMap().cellManager)) {
             //captured
             cell.spawnTeamParticles(teamConfig, world);
-            cell.setModuleColor(captureTeam == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
+            cell.setModuleColor(captureTeam == game.teams.getTeam1().key() ? game.teams.getTeam1Pallet() : game.teams.getTeam2Pallet(), world);
 
             CellManager cellManager = game.getMap().cellManager;
             int cellCollum = cellManager.getCellPos(cell.getCenter()).getLeft();
@@ -190,7 +192,7 @@ public class CaptureManager {
                     gameSpace.getPlayers().sendMessage(rowCaptured);
                     gameSpace.getPlayers().sendMessage(randomModule);
 
-                    game.getParticipant(firstAttacker).giveModule(firstAttacker, captureTeam, moduleItem, 1);
+                    game.teams.giveModule(firstAttacker, captureTeam, moduleItem, 1);
                     game.statistics.forPlayer(firstAttacker).increment(FortressStatistics.ROWS_CAPTURED, 1);
                 }
             }

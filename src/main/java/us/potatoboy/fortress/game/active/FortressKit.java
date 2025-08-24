@@ -55,19 +55,19 @@ public class FortressKit {
             entry.getKey().ifOnline(world, playerEntity -> giveItems(playerEntity, entry.getValue().team));
         }
 
-        HashMap<PlayerRef, FortressPlayer> redTeam = new HashMap<>();
-        HashMap<PlayerRef, FortressPlayer> blueTeam = new HashMap<>();
+        HashMap<PlayerRef, FortressPlayer> team1 = new HashMap<>();
+        HashMap<PlayerRef, FortressPlayer> team2 = new HashMap<>();
 
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
-            if (entry.getValue().team == FortressTeams.RED.key()) {
-                redTeam.put(entry.getKey(), entry.getValue());
+            if (entry.getValue().team == teams.getTeam1().key()) {
+                team1.put(entry.getKey(), entry.getValue());
             } else {
-                blueTeam.put(entry.getKey(), entry.getValue());
+                team2.put(entry.getKey(), entry.getValue());
             }
         }
 
-        giveModules(redTeam, FortressTeams.RED.key());
-        giveModules(blueTeam, FortressTeams.BLUE.key());
+        giveModules(team1, teams.getTeam1().key());
+        giveModules(team2, teams.getTeam2().key());
 
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
             entry.getKey().ifOnline(world, playerEntity -> playerEntity.playerScreenHandler.sendContentUpdates());
@@ -140,9 +140,8 @@ public class FortressKit {
                 }
 
                 Map.Entry<PlayerRef, FortressPlayer> playerEntry = playerItr.next();
-                FortressPlayer participant = playerEntry.getValue();
                 playerEntry.getKey().ifOnline(world, playerEntity -> {
-                    participant.giveModule(playerEntity, team, entry.getKey(), 1);
+                    teams.giveModule(playerEntity, team, entry.getKey(), 1);
                 });
             }
         }

@@ -18,6 +18,7 @@ import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket;
 import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -101,8 +102,8 @@ public class FortressActive {
             }
         }
 
-        captureManager.setRowCaptured(FortressTeams.BLUE.key(), 0);
-        captureManager.setRowCaptured(FortressTeams.RED.key(), map.cellManager.cells.length - 1);
+        captureManager.setRowCaptured(teams.getTeam2().key(), 0);
+        captureManager.setRowCaptured(teams.getTeam1().key(), map.cellManager.cells.length - 1);
 
         buildSidebar();
         globalSidebar.show();
@@ -129,11 +130,11 @@ public class FortressActive {
 
             builder.add(player -> {
                 Pair<Integer, Integer> percents = map.getControlPercent();
-                return TextUtil.getText("sidebar", "percent.red", Text.literal(percents.getLeft().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.RED);
+                return TextUtil.getText("sidebar", "percent", teams.getTeam1().config().name(), Text.literal(percents.getLeft().toString() + "%").formatted(Formatting.GREEN));
             });
             builder.add(player -> {
                 Pair<Integer, Integer> percents = map.getControlPercent();
-                return TextUtil.getText("sidebar", "percent.blue", Text.literal(percents.getRight().toString() + "%").formatted(Formatting.GREEN)).formatted(Formatting.BLUE);
+                return TextUtil.getText("sidebar", "percent", teams.getTeam2().config().name(), Text.literal(percents.getLeft().toString() + "%").formatted(Formatting.GREEN));
             });
 
             builder.add(Text.empty());
@@ -150,11 +151,10 @@ public class FortressActive {
         });
     }
 
-    public static void open(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, Multimap<GameTeamKey, ServerPlayerEntity> players) {
+    public static void open(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, Multimap<GameTeamKey, ServerPlayerEntity> players, FortressTeams teams) {
         gameSpace.setActivity(game -> {
             var widgets = GlobalWidgets.addTo(game);
 
-            var teams = new FortressTeams(gameSpace);
             teams.applyTo(game);
 
             FortressActive active = new FortressActive(gameSpace, world, map, config, widgets, players, teams);
@@ -260,7 +260,7 @@ public class FortressActive {
 
                 stack.decrement(1);
                 cell.addModule(moduleItem);
-                cell.setModuleColor(cell.getOwner() == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET, world);
+                cell.setModuleColor(cell.getOwner() == teams.getTeam1().key() ? teams.getTeam1Pallet() : teams.getTeam2Pallet(), world);
 
                 statistics.forPlayer(player).increment(FortressStatistics.MODULES_PLACED, 1);
                 return ActionResult.SUCCESS;
@@ -292,8 +292,8 @@ public class FortressActive {
         FortressStateManager.TickResult result = stateManager.tick(time);
         if (result != FortressStateManager.TickResult.CONTINUE_TICK) {
             switch (result) {
-                case RED_WIN -> broadcastWin(FortressTeams.RED);
-                case BLUE_WIN -> broadcastWin(FortressTeams.BLUE);
+                case TEAM_1_WIN -> broadcastWin(teams.getTeam1());
+                case TEAM_2_WIN -> broadcastWin(teams.getTeam2());
                 case GAME_CLOSED -> gameSpace.close(GameCloseReason.FINISHED);
             }
 
@@ -402,7 +402,7 @@ public class FortressActive {
             FortressPlayer participant = getParticipant(attacker);
 
             if (participant != null) {
-                participant.giveModule(attacker, participant.team, FortressModules.getRandomModule(attacker.getRandom()), 1);
+                teams.giveModule(attacker, participant.team, FortressModules.getRandomModule(attacker.getRandom()), 1);
                 participant.kills += 1;
                 this.statistics.forPlayer(attacker).increment(StatisticKeys.KILLS, 1);
             }
@@ -498,7 +498,7 @@ public class FortressActive {
         participant.timeOfSpawn = world.getTime();
 
         FortressSpawnLogic.resetPlayer(player, GameMode.ADVENTURE);
-        FortressSpawnLogic.spawnPlayer(player, map.getSpawn(participant.team, player.getRandom()), world, participant.team == FortressTeams.RED.key() ? 180.0f : 0.0f);
+        FortressSpawnLogic.spawnPlayer(player, map.getSpawn(participant.team, player.getRandom()), world, participant.team == teams.getTeam1().key() ? 180.0f : 0.0f);
     }
 
     public FortressMap getMap() {

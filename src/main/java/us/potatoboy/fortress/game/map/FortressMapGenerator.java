@@ -4,6 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.world.biome.BiomeKeys;
 import us.potatoboy.fortress.game.CellManager;
+import us.potatoboy.fortress.game.FortressTeams;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.map_templates.MapTemplateSerializer;
@@ -13,10 +14,10 @@ import java.io.IOException;
 
 public record FortressMapGenerator(FortressMapConfig config) {
 
-    public FortressMap create(MinecraftServer server) throws GameOpenException {
+    public FortressMap create(MinecraftServer server, FortressTeams teams) throws GameOpenException {
         try {
             MapTemplate template = MapTemplateSerializer.loadFromResource(server, this.config.id());
-            CellManager cellManager = new CellManager(getRegion(template, "cells"));
+            CellManager cellManager = new CellManager(getRegion(template, "cells"), teams);
 
             FortressMap map = new FortressMap(template, cellManager);
             template.setBiome(BiomeKeys.THE_VOID);

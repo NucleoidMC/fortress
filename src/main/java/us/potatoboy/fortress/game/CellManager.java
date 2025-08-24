@@ -1,7 +1,6 @@
 package us.potatoboy.fortress.game;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
@@ -10,14 +9,14 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.plasmid.api.game.GameOpenException;
-import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
 import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
 
 public class CellManager {
     public final Cell[][] cells;
     public final BlockBounds bounds;
+    public final FortressTeams teams;
 
-    public CellManager(BlockBounds bounds) {
+    public CellManager(BlockBounds bounds, FortressTeams teams) {
         BlockPos max = bounds.max();
         BlockPos min = bounds.min();
         BlockPos size = bounds.size();
@@ -39,6 +38,7 @@ public class CellManager {
         }
 
         this.bounds = bounds;
+        this.teams = teams;
     }
 
     public void disableCells(BlockBounds bounds) {
@@ -80,22 +80,12 @@ public class CellManager {
         return (value + multiplier / 2) / multiplier * multiplier;
     }
 
-    public BlockState getTeamGlass(GameTeam team) {
-        if (team == FortressTeams.RED) {
-            return Blocks.RED_STAINED_GLASS.getDefaultState();
-        } else if (team == FortressTeams.BLUE) {
-            return Blocks.BLUE_STAINED_GLASS.getDefaultState();
-        }
-
-        return Blocks.LIGHT_GRAY_STAINED_GLASS.getDefaultState();
-    }
-
     public BlockState getTeamBlock(GameTeamKey team, BlockPos pos) {
         Pair<Integer, Integer> location = getCellPos(pos);
 
         boolean primary = (location.getLeft() + location.getRight()) % 2 != 0;
 
-        TeamPallet pallet = team == FortressTeams.RED.key() ? FortressTeams.RED_PALLET : FortressTeams.BLUE_PALLET;
+        TeamPallet pallet = team == teams.getTeam1().key() ? teams.getTeam1Pallet() : teams.getTeam2Pallet();
 
         ItemStack itemStack = new ItemStack(primary ? pallet.primary() : pallet.secondary());
 

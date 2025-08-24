@@ -23,8 +23,7 @@
 
   "sidebar.fortress.title": "Fortress",
   "sidebar.fortress.time_left": "Time Left: %s",
-  "sidebar.fortress.percent.red": "Red: %s",
-  "sidebar.fortress.percent.blue": "Blue: %s",
+  "sidebar.fortress.percent": "%s: %s",
   "sidebar.fortress.stats": "🗡: %s ☠: %s ⚐: %s",
 
   "statistic.bundle.fortress": "Fortress",

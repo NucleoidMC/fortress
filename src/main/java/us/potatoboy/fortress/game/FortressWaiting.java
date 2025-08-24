@@ -9,8 +9,8 @@ import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.WrittenBookItem;
 import net.minecraft.network.packet.s2c.play.OpenWrittenBookS2CPacket;
+import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.RawFilteredPair;
@@ -28,9 +28,8 @@ import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
 import xyz.nucleoid.plasmid.api.game.GameResult;
 import xyz.nucleoid.plasmid.api.game.GameSpace;
 import xyz.nucleoid.plasmid.api.game.common.GameWaitingLobby;
-import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.api.game.common.team.GameTeamList;
-import xyz.nucleoid.plasmid.api.game.common.team.TeamSelectionLobby;
+import xyz.nucleoid.plasmid.api.game.common.team.*;
+import xyz.nucleoid.plasmid.api.game.common.team.provider.SizedAlternativesTeamListProvider;
 import xyz.nucleoid.plasmid.api.game.common.ui.WaitingLobbyUiLayout;
 import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
 import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
@@ -39,6 +38,7 @@ import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.item.ItemUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,20 +47,35 @@ public class FortressWaiting {
     public final ServerWorld world;
     private final FortressMap map;
     private final FortressConfig config;
+    private final FortressTeams teams;
     private final TeamSelectionLobby teamSelectionLobby;
 
-    private FortressWaiting(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, TeamSelectionLobby teamSelectionLobby) {
+    private FortressWaiting(GameSpace gameSpace, ServerWorld world, FortressMap map, FortressConfig config, FortressTeams fortressTeams, TeamSelectionLobby teamSelectionLobby) {
         this.gameSpace = gameSpace;
         this.world = world;
         this.map = map;
         this.config = config;
+        this.teams = fortressTeams;
         this.teamSelectionLobby = teamSelectionLobby;
     }
 
 
     public static GameOpenProcedure open(GameOpenContext<FortressConfig> context) {
         FortressMapGenerator generator = new FortressMapGenerator(context.config().mapConfig());
-        FortressMap map = generator.create(context.server());
+
+        var teamProvider = new SizedAlternativesTeamListProvider(2);
+        var teamsUnprocessed = teamProvider.get(context.server().getOverworld().getRandom());
+        var teams = new ArrayList<GameTeam>();
+        for (var team : teamsUnprocessed) {
+            teams.add(team.withConfig(GameTeamConfig.builder(team.config())
+                    .setFriendlyFire(false)
+                    .setCollision(AbstractTeam.CollisionRule.NEVER)
+                    .build()));
+        }
+
+        var fortressTeams = new FortressTeams(teams);
+
+        FortressMap map = generator.create(context.server(), fortressTeams);
 
         RuntimeWorldConfig worldConfig = new RuntimeWorldConfig()
                 .setGenerator(map.asGenerator(context.server()))
@@ -69,13 +84,12 @@ public class FortressWaiting {
         return context.openWithWorld(worldConfig, (game, world) -> {
             GameWaitingLobby.addTo(game, context.config().playerConfig());
 
-            GameTeamList teams = new GameTeamList(ImmutableList.of(FortressTeams.RED, FortressTeams.BLUE));
-            TeamSelectionLobby teamSelectionLobby = TeamSelectionLobby.addTo(game, teams);
+            TeamSelectionLobby teamSelectionLobby = TeamSelectionLobby.addTo(game, new GameTeamList(teams));
 
-            FortressWaiting waiting = new FortressWaiting(game.getGameSpace(), world, map, context.config(), teamSelectionLobby);
+            FortressWaiting waiting = new FortressWaiting(game.getGameSpace(), world, map, context.config(), fortressTeams, teamSelectionLobby);
 
-            map.setStarterCells(FortressTeams.BLUE, "blue_start", world);
-            map.setStarterCells(FortressTeams.RED, "red_start", world);
+            map.setStarterCells(fortressTeams.getTeam2(), "blue_start", world);
+            map.setStarterCells(fortressTeams.getTeam1(), "red_start", world);
 
             game.listen(GameWaitingLobbyEvents.BUILD_UI_LAYOUT, waiting::onBuildUiLayout);
 
@@ -91,7 +105,7 @@ public class FortressWaiting {
         Multimap<GameTeamKey, ServerPlayerEntity> players = HashMultimap.create();
         teamSelectionLobby.allocate(gameSpace.getPlayers(), players::put);
 
-        FortressActive.open(gameSpace, world, map, config, players);
+        FortressActive.open(gameSpace, world, map, config, players, teams);
 
         return GameResult.ok();
     }

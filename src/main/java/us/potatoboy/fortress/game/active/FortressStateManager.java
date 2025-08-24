@@ -32,10 +32,10 @@ public class FortressStateManager {
         GameTeam winner = testWin(time);
         if (winner != null) {
             triggerFinish(time);
-            if (winner == FortressTeams.RED) {
-                return TickResult.RED_WIN;
+            if (winner == game.teams.getTeam1()) {
+                return TickResult.TEAM_1_WIN;
             } else {
-                return TickResult.BLUE_WIN;
+                return TickResult.TEAM_2_WIN;
             }
         }
 
@@ -44,53 +44,53 @@ public class FortressStateManager {
 
     public GameTeam testWin(long time) {
         Pair<Integer, Integer> percents = game.getMap().getControlPercent();
-        int redPercent = percents.getLeft();
-        int bluePercent = percents.getRight();
+        int team1Percent = percents.getLeft();
+        int team2Percent = percents.getRight();
 
-        if (time >= finishTime || !game.config.recapture() && redPercent + bluePercent == 100) {
-            if (redPercent == bluePercent) {
+        if (time >= finishTime || !game.config.recapture() && team1Percent + team2Percent == 100) {
+            if (team1Percent == team2Percent) {
                 return null;
             }
 
-            if (redPercent > bluePercent) {
-                return FortressTeams.RED;
+            if (team1Percent > team2Percent) {
+                return game.teams.getTeam1();
             } else {
-                return FortressTeams.BLUE;
+                return game.teams.getTeam2();
             }
         }
 
-        if (bluePercent == 0) {
-            return FortressTeams.RED;
+        if (team2Percent == 0) {
+            return game.teams.getTeam1();
         }
 
-        if (redPercent == 0) {
-            return FortressTeams.BLUE;
+        if (team1Percent == 0) {
+            return game.teams.getTeam2();
         }
 
         return getRemainingTeam();
     }
 
     private GameTeam getRemainingTeam() {
-        boolean redRemaining = false;
-        boolean blueRemaining = false;
+        boolean team1Remaining = false;
+        boolean team2Remaining = false;
 
         for (ServerPlayerEntity player : game.gameSpace.getPlayers()) {
             FortressPlayer participant = game.getParticipant(player);
             if (participant != null) {
-                if (participant.team == FortressTeams.RED.key()) {
-                    redRemaining = true;
-                } else if (participant.team == FortressTeams.BLUE.key()) {
-                    blueRemaining = true;
+                if (participant.team == game.teams.getTeam1().key()) {
+                    team1Remaining = true;
+                } else if (participant.team == game.teams.getTeam2().key()) {
+                    team2Remaining = true;
                 }
             }
         }
 
-        if (redRemaining && !blueRemaining) {
-            return FortressTeams.RED;
+        if (team1Remaining && !team2Remaining) {
+            return game.teams.getTeam1();
         }
 
-        if (blueRemaining && !redRemaining) {
-            return FortressTeams.BLUE;
+        if (team2Remaining && !team1Remaining) {
+            return game.teams.getTeam2();
         }
 
         return null;
@@ -111,8 +111,8 @@ public class FortressStateManager {
     public enum TickResult {
         CONTINUE_TICK,
         TICK_FINISHED,
-        RED_WIN,
-        BLUE_WIN,
+        TEAM_1_WIN,
+        TEAM_2_WIN,
         GAME_CLOSED
     }
 }

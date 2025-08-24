@@ -38,7 +38,7 @@ public class FortressMap {
     }
 
     public BlockBounds getSpawn(GameTeamKey team, Random random) {
-        if (team == FortressTeams.RED.key()) {
+        if (team == cellManager.teams.getTeam1().key()) {
             return redSpawns.get(random.nextInt(redSpawns.size()));
         } else {
             return blueSpawns.get(random.nextInt(blueSpawns.size()));
@@ -59,9 +59,9 @@ public class FortressMap {
                     continue;
                 }
 
-                if (cell.getOwner() == FortressTeams.RED.key()) {
+                if (cell.getOwner() == cellManager.teams.getTeam1().key()) {
                     redCells++;
-                } else if (cell.getOwner() == FortressTeams.BLUE.key()) {
+                } else if (cell.getOwner() == cellManager.teams.getTeam2().key()) {
                     blueCells++;
                 }
             }
