@@ -1,7 +1,7 @@
 package us.potatoboy.fortress.game.active;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Pair;
+import net.minecraft.server.level.ServerPlayer;
+import us.potatoboy.fortress.utility.Tuple;
 import us.potatoboy.fortress.game.FortressConfig;
 import us.potatoboy.fortress.game.FortressTeams;
 import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
@@ -43,9 +43,9 @@ public class FortressStateManager {
     }
 
     public GameTeam testWin(long time) {
-        Pair<Integer, Integer> percents = game.getMap().getControlPercent();
-        int redPercent = percents.getLeft();
-        int bluePercent = percents.getRight();
+        Tuple<Integer, Integer> percents = game.getMap().getControlPercent();
+        int redPercent = percents.getA();
+        int bluePercent = percents.getB();
 
         if (time >= finishTime || !game.config.recapture() && redPercent + bluePercent == 100) {
             if (redPercent == bluePercent) {
@@ -74,7 +74,7 @@ public class FortressStateManager {
         boolean redRemaining = false;
         boolean blueRemaining = false;
 
-        for (ServerPlayerEntity player : game.gameSpace.getPlayers()) {
+        for (ServerPlayer player : game.gameSpace.getPlayers()) {
             FortressPlayer participant = game.getParticipant(player);
             if (participant != null) {
                 if (participant.team == FortressTeams.RED.key()) {

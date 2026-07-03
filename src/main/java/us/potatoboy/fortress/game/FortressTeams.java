@@ -1,11 +1,11 @@
 package us.potatoboy.fortress.game;
 
-import net.minecraft.block.Blocks;
-import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.scores.Team;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.util.RandomSource;
 import xyz.nucleoid.plasmid.api.game.GameActivity;
 import xyz.nucleoid.plasmid.api.game.GameSpace;
 import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
@@ -15,32 +15,32 @@ import xyz.nucleoid.plasmid.api.game.common.team.TeamManager;
 
 public class FortressTeams {
     public static final GameTeam RED = new GameTeam(new GameTeamKey("red"), GameTeamConfig.builder()
-            .setName(Text.translatable("color.minecraft.red"))
+            .setName(Component.translatable("color.minecraft.red"))
             .setColors(GameTeamConfig.Colors.from(DyeColor.RED))
             .setFriendlyFire(false)
-            .setCollision(AbstractTeam.CollisionRule.NEVER)
+            .setCollision(Team.CollisionRule.NEVER)
             .build()
     );
     public static final GameTeam BLUE = new GameTeam(new GameTeamKey("blue"), GameTeamConfig.builder()
-            .setName(Text.translatable("color.minecraft.blue"))
+            .setName(Component.translatable("color.minecraft.blue"))
             .setColors(GameTeamConfig.Colors.from(DyeColor.BLUE))
             .setFriendlyFire(false)
-            .setCollision(AbstractTeam.CollisionRule.NEVER)
+            .setCollision(Team.CollisionRule.NEVER)
             .build()
     );
 
     public static final TeamPallet RED_PALLET = new TeamPallet(
-            Blocks.RED_CONCRETE,
-            Blocks.RED_TERRACOTTA,
-            Blocks.RED_STAINED_GLASS,
+            Blocks.CONCRETE.red(),
+            Blocks.DYED_TERRACOTTA.red(),
+            Blocks.STAINED_GLASS.red(),
             Blocks.CRIMSON_PLANKS,
             Blocks.CRIMSON_STAIRS,
             Blocks.CRIMSON_SLAB
     );
     public static final TeamPallet BLUE_PALLET = new TeamPallet(
-            Blocks.BLUE_CONCRETE,
-            Blocks.BLUE_TERRACOTTA,
-            Blocks.BLUE_STAINED_GLASS,
+            Blocks.CONCRETE.blue(),
+            Blocks.DYED_TERRACOTTA.blue(),
+            Blocks.STAINED_GLASS.blue(),
             Blocks.WARPED_PLANKS,
             Blocks.WARPED_STAIRS,
             Blocks.WARPED_SLAB
@@ -64,7 +64,7 @@ public class FortressTeams {
         return manager.getTeamConfig(key);
     }
 
-    public GameTeamKey getSmallestTeam(Random random) {
+    public GameTeamKey getSmallestTeam(RandomSource random) {
         int red = manager.playersIn(RED.key()).size();
         int blue = manager.playersIn(BLUE.key()).size();
 
@@ -77,11 +77,11 @@ public class FortressTeams {
         return random.nextBoolean() ? RED.key() : BLUE.key();
     }
 
-    public void addPlayer(ServerPlayerEntity playerEntity, GameTeamKey team) {
+    public void addPlayer(ServerPlayer playerEntity, GameTeamKey team) {
         manager.addPlayerTo(playerEntity, team);
     }
 
-    public void removePlayer(ServerPlayerEntity playerEntity, GameTeamKey team) {
+    public void removePlayer(ServerPlayer playerEntity, GameTeamKey team) {
         manager.removePlayerFrom(playerEntity, team);
     }
 }

@@ -1,12 +1,12 @@
 package us.potatoboy.fortress.custom.item;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.util.RandomSource;
 import us.potatoboy.fortress.Fortress;
 
 import java.util.function.Function;
@@ -23,18 +23,18 @@ public class FortressModules {
     public static final HealModuleItem HEAL = register("module_heal", settings -> new HealModuleItem(settings, Fortress.identifier("heal")));
     public static final TeslaCoilModuleItem TESLA_COIL = register("module_tesla_coil", settings -> new TeslaCoilModuleItem(settings, Fortress.identifier("tesla_coil")));
 
-    private static <T extends ModuleItem> T register(String path, Function<Item.Settings, T> function) {
+    private static <T extends ModuleItem> T register(String path, Function<Item.Properties, T> function) {
         var id = Fortress.identifier(path);
-        var item = function.apply(new Item.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, id)));
-        Registry.register(Registries.ITEM, id, item);
+        var item = function.apply(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)));
+        Registry.register(BuiltInRegistries.ITEM, id, item);
         return item;
     }
 
-    public static ModuleItem getRandomModule(Random random) {
-        return (ModuleItem) Registries.ITEM.getOrThrow(FortressItemTags.REGULAR_MODULES).getRandom(random).get().value();
+    public static ModuleItem getRandomModule(RandomSource random) {
+        return (ModuleItem) BuiltInRegistries.ITEM.getOrThrow(FortressItemTags.REGULAR_MODULES).getRandomElement(random).get().value();
     }
 
-    public static ModuleItem getRandomSpecial(Random random) {
-        return (ModuleItem) Registries.ITEM.getOrThrow(FortressItemTags.SPECIAL_MODULES).getRandom(random).get().value();
+    public static ModuleItem getRandomSpecial(RandomSource random) {
+        return (ModuleItem) BuiltInRegistries.ITEM.getOrThrow(FortressItemTags.SPECIAL_MODULES).getRandomElement(random).get().value();
     }
 }

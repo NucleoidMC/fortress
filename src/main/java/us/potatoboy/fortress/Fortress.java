@@ -2,14 +2,14 @@ package us.potatoboy.fortress;
 
 import com.google.common.reflect.Reflection;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.text.Style;
-import net.minecraft.text.TextColor;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.resources.Identifier;
 import us.potatoboy.fortress.custom.block.FortressBlocks;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.game.FortressConfig;
 import us.potatoboy.fortress.game.FortressWaiting;
-import xyz.nucleoid.plasmid.api.game.GameType;
+import xyz.nucleoid.plasmid.api.game.GameTypes;
 
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -22,7 +22,7 @@ public class Fortress implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        GameType.register(
+        GameTypes.register(
                 identifier("fortress"),
                 FortressConfig.CODEC,
                 FortressWaiting::open
@@ -33,6 +33,6 @@ public class Fortress implements ModInitializer {
     }
 
     public static Identifier identifier(String value) {
-        return Identifier.of(ID, value);
+        return Identifier.fromNamespaceAndPath(ID, value);
     }
 }

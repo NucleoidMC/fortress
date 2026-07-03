@@ -1,8 +1,8 @@
 package us.potatoboy.fortress.game.map;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.biome.Biomes;
 import us.potatoboy.fortress.game.CellManager;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
@@ -19,7 +19,7 @@ public record FortressMapGenerator(FortressMapConfig config) {
             CellManager cellManager = new CellManager(getRegion(template, "cells"));
 
             FortressMap map = new FortressMap(template, cellManager);
-            template.setBiome(BiomeKeys.THE_VOID);
+            template.setBiome(Biomes.THE_VOID);
 
             map.waitingSpawn = getRegion(template, "waiting_spawn");
 
@@ -30,14 +30,14 @@ public record FortressMapGenerator(FortressMapConfig config) {
 
             return map;
         } catch (IOException e) {
-            throw new GameOpenException(Text.literal("Failed to load map"));
+            throw new GameOpenException(Component.literal("Failed to load map"));
         }
     }
 
     private static BlockBounds getRegion(MapTemplate template, String name) {
         BlockBounds bounds = template.getMetadata().getFirstRegionBounds(name);
         if (bounds == null) {
-            throw new GameOpenException(Text.literal(String.format("%s region not found", name)));
+            throw new GameOpenException(Component.literal(String.format("%s region not found", name)));
         }
 
         return bounds;

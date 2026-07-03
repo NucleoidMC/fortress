@@ -1,21 +1,25 @@
 package us.potatoboy.fortress.game.active;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import net.minecraft.block.entity.BannerPatterns;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.BannerPatternsComponent;
-import net.minecraft.component.type.BlockPredicatesComponent;
-import net.minecraft.component.type.DyedColorComponent;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.*;
-import net.minecraft.predicate.BlockPredicate;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.advancements.predicates.BlockPredicate;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.level.block.entity.BannerPatterns;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.level.block.entity.BannerPatternLayers;
+import net.minecraft.world.item.AdventureModePredicate;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Unit;
 import us.potatoboy.fortress.custom.item.FortressModules;
 import us.potatoboy.fortress.custom.item.ModuleItem;
@@ -29,11 +33,11 @@ public class FortressKit {
     private final LinkedHashMap<ModuleItem, Integer> starterModules = new LinkedHashMap<>();
     private final LinkedHashMap<Item, Integer> starterItems = new LinkedHashMap<>();
 
-    private ServerWorld world;
+    private ServerLevel level;
     private FortressTeams teams;
 
-    FortressKit(ServerWorld world, FortressTeams teams) {
-        this.world = world;
+    FortressKit(ServerLevel level, FortressTeams teams) {
+        this.level = level;
         this.teams = teams;
 
         starterItems.put(Items.STONE_SWORD, 1);
@@ -51,8 +55,8 @@ public class FortressKit {
 
     public void giveStarterKit(Object2ObjectMap<PlayerRef, FortressPlayer> participants) {
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
-            entry.getKey().ifOnline(world, playerEntity -> playerEntity.getInventory().clear());
-            entry.getKey().ifOnline(world, playerEntity -> giveItems(playerEntity, entry.getValue().team));
+            entry.getKey().ifOnline(level, playerEntity -> playerEntity.getInventory().clearContent());
+            entry.getKey().ifOnline(level, playerEntity -> giveItems(playerEntity, entry.getValue().team));
         }
 
         HashMap<PlayerRef, FortressPlayer> redTeam = new HashMap<>();
@@ -70,58 +74,58 @@ public class FortressKit {
         giveModules(blueTeam, FortressTeams.BLUE.key());
 
         for (Map.Entry<PlayerRef, FortressPlayer> entry : participants.entrySet()) {
-            entry.getKey().ifOnline(world, playerEntity -> playerEntity.playerScreenHandler.sendContentUpdates());
+            entry.getKey().ifOnline(level, playerEntity -> playerEntity.inventoryMenu.broadcastChanges());
         }
     }
 
-    private void giveArmor(ServerPlayerEntity playerEntity, GameTeamKey team) {
+    private void giveArmor(ServerPlayer playerEntity, GameTeamKey team) {
         ItemStack boots = new ItemStack(Items.LEATHER_BOOTS);
-        var registry = playerEntity.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
-        ItemEnchantmentsComponent.Builder builder = new ItemEnchantmentsComponent.Builder(
-                boots.get(DataComponentTypes.ENCHANTMENTS)
+        var registry = playerEntity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        ItemEnchantments.Mutable builder = new ItemEnchantments.Mutable(
+                boots.get(DataComponents.ENCHANTMENTS)
         );
-        builder.add(registry.getOrThrow(Enchantments.FEATHER_FALLING), 5);
-        boots.set(DataComponentTypes.ENCHANTMENTS, builder.build());
-        boots.set(DataComponentTypes.DYED_COLOR, new DyedColorComponent(teams.getConfig(team).dyeColor().getRgb()));
+        builder.upgrade(registry.getOrThrow(Enchantments.FEATHER_FALLING), 5);
+        boots.set(DataComponents.ENCHANTMENTS, builder.toImmutable());
+        boots.set(DataComponents.DYED_COLOR, new DyedItemColor(teams.getConfig(team).dyeColor().getValue()));
 
-        playerEntity.equipStack(EquipmentSlot.FEET, boots);
+        playerEntity.setItemSlot(EquipmentSlot.FEET, boots);
     }
 
-    public void giveItems(ServerPlayerEntity playerEntity, GameTeamKey team) {
+    public void giveItems(ServerPlayer playerEntity, GameTeamKey team) {
         for (Map.Entry<Item, Integer> entry : starterItems.entrySet()) {
             ItemStack itemStack = new ItemStack(entry.getKey(), entry.getValue());
 
             if (entry.getKey() instanceof ShieldItem) {
-                var registry = playerEntity.getRegistryManager().getOrThrow(RegistryKeys.BANNER_PATTERN);
-                var bannerPattern = new BannerPatternsComponent.Builder()
-                        .add(registry, BannerPatterns.BASE, teams.getConfig(team).blockDyeColor())
+                var registry = playerEntity.registryAccess().lookupOrThrow(Registries.BANNER_PATTERN);
+                var bannerPattern = new BannerPatternLayers.Builder()
+                        .addIfRegistered(registry, BannerPatterns.BASE, teams.getConfig(team).blockDyeColor())
                         .build();
-                itemStack.set(DataComponentTypes.BANNER_PATTERNS, bannerPattern);
+                itemStack.set(DataComponents.BANNER_PATTERNS, bannerPattern);
             }
 
             if (entry.getKey() instanceof BowItem) {
-                var registry = playerEntity.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
-                ItemEnchantmentsComponent.Builder builder = new ItemEnchantmentsComponent.Builder(
-                        itemStack.get(DataComponentTypes.ENCHANTMENTS)
+                var registry = playerEntity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+                ItemEnchantments.Mutable builder = new ItemEnchantments.Mutable(
+                        itemStack.get(DataComponents.ENCHANTMENTS)
                 );
-                builder.add(registry.getOrThrow(Enchantments.INFINITY), 1);
-                itemStack.set(DataComponentTypes.ENCHANTMENTS, builder.build());
+                builder.upgrade(registry.getOrThrow(Enchantments.INFINITY), 1);
+                itemStack.set(DataComponents.ENCHANTMENTS, builder.toImmutable());
             }
 
-            if (entry.getKey().getRegistryEntry().isIn(ItemTags.PICKAXES)) {
-                itemStack.set(DataComponentTypes.CAN_BREAK, new BlockPredicatesComponent(List.of(
-                        BlockPredicate.Builder.create()
-                                .tag(world.getRegistryManager().getOrThrow(RegistryKeys.BLOCK), BlockTags.PLANKS)
+            if (entry.getKey().builtInRegistryHolder().is(ItemTags.PICKAXES)) {
+                itemStack.set(DataComponents.CAN_BREAK, new AdventureModePredicate(List.of(
+                        BlockPredicate.Builder.block()
+                                .of(level.registryAccess().lookupOrThrow(Registries.BLOCK), BlockTags.PLANKS)
                                 .build()
                 )));
             }
 
-            itemStack.set(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE);
+            itemStack.set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
 
             if (entry.getKey() instanceof ShieldItem) {
-                playerEntity.equipStack(EquipmentSlot.OFFHAND, itemStack);
+                playerEntity.setItemSlot(EquipmentSlot.OFFHAND, itemStack);
             } else {
-                playerEntity.getInventory().insertStack(itemStack);
+                playerEntity.getInventory().add(itemStack);
             }
         }
 
@@ -141,7 +145,7 @@ public class FortressKit {
 
                 Map.Entry<PlayerRef, FortressPlayer> playerEntry = playerItr.next();
                 FortressPlayer participant = playerEntry.getValue();
-                playerEntry.getKey().ifOnline(world, playerEntity -> {
+                playerEntry.getKey().ifOnline(level, playerEntity -> {
                     participant.giveModule(playerEntity, team, entry.getKey(), 1);
                 });
             }

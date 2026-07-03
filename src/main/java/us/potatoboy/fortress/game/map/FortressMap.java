@@ -1,11 +1,11 @@
 package us.potatoboy.fortress.game.map;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.server.level.ServerLevel;
+import us.potatoboy.fortress.utility.Tuple;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import us.potatoboy.fortress.game.Cell;
 import us.potatoboy.fortress.game.CellManager;
 import us.potatoboy.fortress.game.FortressTeams;
@@ -13,7 +13,7 @@ import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapTemplate;
 import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
 import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.api.game.world.generator.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.api.game.level.generator.TemplateChunkGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class FortressMap {
     public final BlockBounds bounds;
     public final List<BlockBounds> redSpawns = new ArrayList<>();
     public final List<BlockBounds> blueSpawns = new ArrayList<>();
-    public BlockBounds waitingSpawn = BlockBounds.ofBlock(BlockPos.ORIGIN);
+    public BlockBounds waitingSpawn = BlockBounds.ofBlock(BlockPos.ZERO);
     public final CellManager cellManager;
 
     public FortressMap(MapTemplate template, CellManager cellManager) {
@@ -37,7 +37,7 @@ public class FortressMap {
         return new TemplateChunkGenerator(server, this.template);
     }
 
-    public BlockBounds getSpawn(GameTeamKey team, Random random) {
+    public BlockBounds getSpawn(GameTeamKey team, RandomSource random) {
         if (team == FortressTeams.RED.key()) {
             return redSpawns.get(random.nextInt(redSpawns.size()));
         } else {
@@ -45,7 +45,7 @@ public class FortressMap {
         }
     }
 
-    public Pair<Integer, Integer> getControlPercent() {
+    public Tuple<Integer, Integer> getControlPercent() {
         Cell[][] rows = cellManager.cells;
 
         int redCells = 0;
@@ -71,10 +71,10 @@ public class FortressMap {
         int redPercent = Math.round(((float) redCells / size) * 100);
         int bluePercent = Math.round(((float) blueCells / size) * 100);
 
-        return new Pair<>(redPercent, bluePercent);
+        return new Tuple<>(redPercent, bluePercent);
     }
 
-    public void setStarterCells(GameTeam team, String region, ServerWorld world) {
+    public void setStarterCells(GameTeam team, String region, ServerLevel world) {
         template.getMetadata().getRegionBounds(region).forEach(bounds -> cellManager.setCellsOwner(bounds, team.key(), world));
     }
 }

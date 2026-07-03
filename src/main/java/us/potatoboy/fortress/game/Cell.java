@@ -1,12 +1,16 @@
 package us.potatoboy.fortress.game;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import net.minecraft.block.*;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import us.potatoboy.fortress.custom.item.ModuleItem;
 import us.potatoboy.fortress.game.active.FortressPlayer;
 import xyz.nucleoid.map_templates.BlockBounds;
@@ -32,7 +36,7 @@ public class Cell {
         this.center = center;
         this.owner = null;
         this.modules = new ArrayList<>();
-        this.bounds = BlockBounds.of(center.add(-1, 0, -1), center.add(1, 0, 1));
+        this.bounds = BlockBounds.of(center.offset(-1, 0, -1), center.offset(1, 0, 1));
         this.enabled = true;
     }
 
@@ -40,9 +44,9 @@ public class Cell {
         return owner;
     }
 
-    public void setOwner(GameTeamKey owner, ServerWorld world, CellManager cellManager) {
+    public void setOwner(GameTeamKey owner, ServerLevel level, CellManager cellManager) {
         this.owner = owner;
-        bounds.iterator().forEachRemaining(blockPos -> world.setBlockState(blockPos, cellManager.getTeamBlock(owner, blockPos)));
+        bounds.iterator().forEachRemaining(blockPos -> level.setBlockAndUpdate(blockPos, cellManager.getTeamBlock(owner, blockPos)));
     }
 
     public BlockPos getCenter() {
@@ -61,11 +65,11 @@ public class Cell {
         modules.add(module);
     }
 
-    public void tickModules(Object2ObjectMap<PlayerRef, FortressPlayer> participants, ServerWorld world) {
-        modules.forEach(moduleItem -> moduleItem.tick(center, participants, owner, world));
+    public void tickModules(Object2ObjectMap<PlayerRef, FortressPlayer> participants, ServerLevel level) {
+        modules.forEach(moduleItem -> moduleItem.tick(center, participants, owner, level));
     }
 
-    public boolean incrementCapture(GameTeamKey team, ServerWorld world, int amount, CellManager cellManager) {
+    public boolean incrementCapture(GameTeamKey team, ServerLevel level, int amount, CellManager cellManager) {
         captureTicks += amount;
 
         Iterator<BlockPos> iterator = bounds.iterator();
@@ -73,13 +77,13 @@ public class Cell {
             if (iterator.hasNext()) {
                 BlockPos blockPos = iterator.next();
 
-                world.setBlockState(blockPos, cellManager.getTeamBlock(team, center));
+                level.setBlockAndUpdate(blockPos, cellManager.getTeamBlock(team, center));
             }
         }
 
         if (captureTicks >= 9) {
             captureTicks = 0;
-            setOwner(team, world, cellManager);
+            setOwner(team, level, cellManager);
             captureState = null;
 
             return true;
@@ -88,13 +92,13 @@ public class Cell {
         return false;
     }
 
-    public boolean decrementCapture(ServerWorld world, int amount, CellManager cellManager) {
+    public boolean decrementCapture(ServerLevel level, int amount, CellManager cellManager) {
         captureTicks -= amount;
 
-        BlockPos offset = center.add(1, 0, 1);
+        BlockPos offset = center.offset(1, 0, 1);
         for (int z = 0, i = 0; z > -3; z--) {
             for (int x = 0; x > -3 && i < 9 - captureTicks; x--, i++) {
-                world.setBlockState(offset.add(x, 0, z), cellManager.getTeamBlock(owner, offset));
+                level.setBlockAndUpdate(offset.offset(x, 0, z), cellManager.getTeamBlock(owner, offset));
             }
         }
 
@@ -108,36 +112,36 @@ public class Cell {
         return false;
     }
 
-    public void setModuleColor(TeamPallet pallet, ServerWorld world) {
-        BlockBounds moduleBounds = BlockBounds.of(bounds.min(), bounds.max().add(0, modules.size() * 3, 0));
+    public void setModuleColor(TeamPallet pallet, ServerLevel level) {
+        BlockBounds moduleBounds = BlockBounds.of(bounds.min(), bounds.max().offset(0, modules.size() * 3, 0));
         
         moduleBounds.iterator().forEachRemaining(blockPos -> {
-            BlockState state = world.getBlockState(blockPos);
+            BlockState state = level.getBlockState(blockPos);
 
-            if (state.isIn(BlockTags.PLANKS)) {
-                world.setBlockState(blockPos, pallet.woodPlank().getDefaultState());
-            } else if (state.isIn(BlockTags.WOODEN_STAIRS)) {
-                world.setBlockState(blockPos, pallet.woodStair().getDefaultState()
-                        .with(StairsBlock.FACING, state.get(StairsBlock.FACING))
-                        .with(StairsBlock.HALF, state.get(StairsBlock.HALF))
-                        .with(StairsBlock.SHAPE, state.get(StairsBlock.SHAPE))
+            if (state.is(BlockTags.PLANKS)) {
+                level.setBlockAndUpdate(blockPos, pallet.woodPlank().defaultBlockState());
+            } else if (state.is(BlockTags.WOODEN_STAIRS)) {
+                level.setBlockAndUpdate(blockPos, pallet.woodStair().defaultBlockState()
+                        .setValue(StairBlock.FACING, state.getValue(StairBlock.FACING))
+                        .setValue(StairBlock.HALF, state.getValue(StairBlock.HALF))
+                        .setValue(StairBlock.SHAPE, state.getValue(StairBlock.SHAPE))
                 );
-            } else if (state.isIn(BlockTags.WOODEN_SLABS)) {
-                world.setBlockState(blockPos, pallet.woodSlab().getDefaultState()
-                        .with(SlabBlock.TYPE, state.get(SlabBlock.TYPE))
+            } else if (state.is(BlockTags.WOODEN_SLABS)) {
+                level.setBlockAndUpdate(blockPos, pallet.woodSlab().defaultBlockState()
+                        .setValue(SlabBlock.TYPE, state.getValue(SlabBlock.TYPE))
                 );
             }
 
             Block block = state.getBlock();
 
-            if (block == Blocks.RED_CONCRETE || block == Blocks.BLUE_CONCRETE) {
-                world.setBlockState(blockPos, pallet.primary().getDefaultState());
+            if (block == Blocks.CONCRETE.red() || block == Blocks.CONCRETE.blue()) {
+                level.setBlockAndUpdate(blockPos, pallet.primary().defaultBlockState());
             }
         });
     }
 
-    public void spawnParticles(ParticleEffect effect, ServerWorld world) {
-        bounds.iterator().forEachRemaining(pos -> world.spawnParticles(
+    public void spawnParticles(ParticleOptions effect, ServerLevel level) {
+        bounds.iterator().forEachRemaining(pos -> level.sendParticles(
                 effect,
                 pos.getX() + 0.5,
                 pos.getY() + 1,
@@ -148,10 +152,10 @@ public class Cell {
         ));
     }
 
-    public void spawnTeamParticles(GameTeamConfig team, ServerWorld world) {
+    public void spawnTeamParticles(GameTeamConfig team, ServerLevel level) {
         int color = team.blockDyeColor().getFireworkColor();
-        DustParticleEffect effect = new DustParticleEffect(color, 2);
+        DustParticleOptions effect = new DustParticleOptions(color, 2);
 
-        spawnParticles(effect, world);
+        spawnParticles(effect, level);
     }
 }

@@ -2,7 +2,7 @@ package us.potatoboy.fortress.game.map;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public record FortressMapConfig(Identifier id, int buildLimit) {
     public static final Codec<FortressMapConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(

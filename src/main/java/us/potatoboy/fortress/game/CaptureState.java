@@ -1,20 +1,20 @@
 package us.potatoboy.fortress.game;
 
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 public enum CaptureState {
-    CAPTURING(Text.literal("Capturing..").formatted(Formatting.GOLD)),
-    SECURING(Text.literal("Securing..").formatted(Formatting.AQUA)),
-    CONTESTED(Text.literal("Contested!"));
+    CAPTURING(Component.literal("Capturing..").withStyle(ChatFormatting.GOLD)),
+    SECURING(Component.literal("Securing..").withStyle(ChatFormatting.AQUA)),
+    CONTESTED(Component.literal("Contested!"));
 
-    private final Text name;
+    private final Component name;
 
-    CaptureState(Text name) {
+    CaptureState(Component name) {
         this.name = name;
     }
 
-    public Text getName() {
+    public Component getName() {
         return name;
     }
 }
