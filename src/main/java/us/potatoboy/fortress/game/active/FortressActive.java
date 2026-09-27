@@ -243,8 +243,8 @@ public class FortressActive {
                 }
 
                 StructurePlaceSettings structurePlacementData = new StructurePlaceSettings();
-                BlockPos structurePos = new BlockPos(cell.getCenter()).offset(0, 1, 0).offset(0, placeIndex * 3, 0);
-                BlockPos structurePivot = new BlockPos(structurePos);
+                BlockPos structurePos = cell.getCenter  ().offset(0, 1, 0).offset(0, placeIndex * 3, 0);
+                BlockPos structurePivot = structurePos;
                 Direction playerDirection = player.getDirection();
                 switch (playerDirection) {
                     case NORTH -> structurePos = structurePos.offset(-1, 0, -1);
