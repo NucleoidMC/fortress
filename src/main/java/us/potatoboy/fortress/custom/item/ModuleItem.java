@@ -39,6 +39,6 @@ public class ModuleItem extends Item implements PolymerItem {
     }
 
     public StructureTemplate getStructure(MinecraftServer server) {
-        return server.getStructureManager().get(structureId).orElseThrow();
+        return server.getStructureTemplateManager().get(structureId).orElseThrow();
     }
 }
